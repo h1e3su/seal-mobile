@@ -1,7 +1,7 @@
 import '../../core/network/dio_client.dart';
 
-class UserRemoteDatasource {
+class UserRemoteDataSource {
   final DioClient _dioClient;
 
-  const UserRemoteDatasource(this._dioClient);
+  const UserRemoteDataSource(this._dioClient);
 }

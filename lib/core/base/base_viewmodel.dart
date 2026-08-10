@@ -17,6 +17,10 @@ abstract class BaseViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setLoading() => setState(ViewState.loading);
+  void setSuccess() => setState(ViewState.success);
+  void setIdle() => setState(ViewState.idle);
+
   void setError(String? message) {
     _errorMessage = message;
     setState(ViewState.error);

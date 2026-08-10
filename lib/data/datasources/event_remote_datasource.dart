@@ -1,7 +1,7 @@
 import '../../core/network/dio_client.dart';
 
-class EventRemoteDatasource {
+class EventRemoteDataSource {
   final DioClient _dioClient;
 
-  const EventRemoteDatasource(this._dioClient);
+  const EventRemoteDataSource(this._dioClient);
 }

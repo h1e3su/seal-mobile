@@ -1,7 +1,7 @@
 import '../../core/network/dio_client.dart';
 
-class StorageRemoteDatasource {
+class StorageRemoteDataSource {
   final DioClient _dioClient;
 
-  const StorageRemoteDatasource(this._dioClient);
+  const StorageRemoteDataSource(this._dioClient);
 }

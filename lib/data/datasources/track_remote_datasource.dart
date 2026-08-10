@@ -1,7 +1,7 @@
 import '../../core/network/dio_client.dart';
 
-class TrackRemoteDatasource {
+class TrackRemoteDataSource {
   final DioClient _dioClient;
 
-  const TrackRemoteDatasource(this._dioClient);
+  const TrackRemoteDataSource(this._dioClient);
 }

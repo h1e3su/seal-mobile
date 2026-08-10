@@ -1,5 +1,8 @@
 import '../../../core/base/base_viewmodel.dart';
+import '../../../data/repositories/user_repository.dart';
 
-class ProfileViewmodel extends BaseViewModel {
-  // TODO: Implement ViewModel logic
+class ProfileViewModel extends BaseViewModel {
+  final UserRepository _userRepository;
+
+  ProfileViewModel(this._userRepository);
 }

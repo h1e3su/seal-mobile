@@ -1,7 +1,7 @@
 import '../../core/network/dio_client.dart';
 
-class SubmitResultRemoteDatasource {
+class SubmitResultRemoteDataSource {
   final DioClient _dioClient;
 
-  const SubmitResultRemoteDatasource(this._dioClient);
+  const SubmitResultRemoteDataSource(this._dioClient);
 }
