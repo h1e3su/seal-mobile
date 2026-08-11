@@ -89,8 +89,17 @@ class _LoginBodyState extends State<_LoginBody> {
                       onPressed: () => _onLoginPressed(vm),
                     ),
               TextButton(
-                onPressed: () =>
-                    Navigator.of(context).pushNamed(RouteNames.register),
+                onPressed: () async {
+                  final message = await Navigator.of(context).pushNamed(RouteNames.register);
+                  if (message is String && context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(message),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                },
                 child: const Text('Chưa có tài khoản? Đăng ký'),
               ),
               TextButton(

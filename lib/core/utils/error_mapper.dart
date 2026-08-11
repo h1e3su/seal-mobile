@@ -1,7 +1,21 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 class ErrorMapper {
   static String toMessage(Exception exception) {
+    debugPrint('=== NETWORK ERROR ===');
+    debugPrint('Exception: ${exception.runtimeType}');
+    debugPrint('Details: $exception');
+    if (exception is DioException) {
+      debugPrint('Path: ${exception.requestOptions.path}');
+      debugPrint('Method: ${exception.requestOptions.method}');
+      debugPrint('Status Code: ${exception.response?.statusCode}');
+      debugPrint('Response Body: ${exception.response?.data}');
+      debugPrint('Type: ${exception.type}');
+      debugPrint('Error: ${exception.error}');
+    }
+    debugPrint('======================');
+
     if (exception is DioException) {
       final data = exception.response?.data;
       if (data is Map && data['message'] is String) {

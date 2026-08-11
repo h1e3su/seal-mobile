@@ -62,7 +62,7 @@ void setupLocator() {
     () => LoginViewModel(locator<AuthRepository>(), locator<SecureStorageService>()),
   );
   locator.registerFactory<RegisterViewModel>(
-    () => RegisterViewModel(locator<AuthRepository>(), locator<SecureStorageService>()),
+    () => RegisterViewModel(locator<AuthRepository>()),
   );
   locator.registerFactory<EventViewModel>(() => EventViewModel(locator<EventRepository>()));
   locator.registerFactory<TeamViewModel>(() => TeamViewModel(locator<TeamRepository>()));

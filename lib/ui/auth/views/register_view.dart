@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../app/di/locator.dart';
-import '../../../app/router/route_names.dart';
 import '../../common/widgets/app_button.dart';
 import '../../common/widgets/app_text_field.dart';
 import '../../common/widgets/loading_indicator.dart';
@@ -46,7 +45,7 @@ class _RegisterBodyState extends State<_RegisterBody> {
       _fullNameController.text,
     );
     if (success && mounted) {
-      Navigator.of(context).pushReplacementNamed(RouteNames.home);
+      Navigator.of(context).pop('Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản trước khi đăng nhập.');
     }
   }
 

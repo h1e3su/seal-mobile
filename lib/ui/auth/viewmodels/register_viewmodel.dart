@@ -1,15 +1,12 @@
 import '../../../core/base/base_viewmodel.dart';
 import '../../../core/network/api_result.dart';
-import '../../../core/storage/secure_storage_service.dart';
-import '../../../core/constants/storage_keys.dart';
 import '../../../core/utils/error_mapper.dart';
 import '../../../data/repositories/auth_repository.dart';
 
 class RegisterViewModel extends BaseViewModel {
   final AuthRepository _authRepository;
-  final SecureStorageService _secureStorage;
 
-  RegisterViewModel(this._authRepository, this._secureStorage);
+  RegisterViewModel(this._authRepository);
 
   String? emailError;
   String? passwordError;
@@ -38,7 +35,6 @@ class RegisterViewModel extends BaseViewModel {
 
     setLoading();
     
-    // 1. Call Register
     final registerResult = await _authRepository.register(
       email: email.trim(),
       password: password,
@@ -47,22 +43,8 @@ class RegisterViewModel extends BaseViewModel {
 
     switch (registerResult) {
       case Success():
-        // 2. Auto-login on success
-        final loginResult = await _authRepository.login(email.trim(), password);
-        switch (loginResult) {
-          case Success(data: final authResponse):
-            if (authResponse.accessToken == null || authResponse.refreshToken == null) {
-              setError('Đăng ký thành công nhưng đăng nhập tự động thất bại.');
-              return false;
-            }
-            await _secureStorage.write(StorageKeys.accessToken, authResponse.accessToken!);
-            await _secureStorage.write(StorageKeys.refreshToken, authResponse.refreshToken!);
-            setSuccess();
-            return true;
-          case Failure(exception: final ex):
-            setError('Đăng ký thành công nhưng không thể tự động đăng nhập: ${ErrorMapper.toMessage(ex)}');
-            return false;
-        }
+        setSuccess();
+        return true;
       case Failure(exception: final ex):
         setError(ErrorMapper.toMessage(ex));
         return false;
