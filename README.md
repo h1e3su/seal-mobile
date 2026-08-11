@@ -655,4 +655,4 @@ class ApiEndpoints {
 
 ## 📄 License
 
-Dự án này được phát triển cho môn học **PRM392** tại trường **FPT University**.
+Dự án này được phát triển cho môn học **SWP391 Fall25** tại trường **FPT University**.
