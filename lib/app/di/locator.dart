@@ -58,10 +58,14 @@ void setupLocator() {
   locator.registerLazySingleton<TrackRepository>(() => TrackRepository(locator<TrackRemoteDataSource>()));
 
   // ViewModels
-  locator.registerFactory<LoginViewModel>(() => LoginViewModel(locator<AuthRepository>()));
-  locator.registerFactory<RegisterViewModel>(() => RegisterViewModel(locator<AuthRepository>()));
+  locator.registerFactory<LoginViewModel>(
+    () => LoginViewModel(locator<AuthRepository>(), locator<SecureStorageService>()),
+  );
+  locator.registerFactory<RegisterViewModel>(
+    () => RegisterViewModel(locator<AuthRepository>(), locator<SecureStorageService>()),
+  );
   locator.registerFactory<EventViewModel>(() => EventViewModel(locator<EventRepository>()));
   locator.registerFactory<TeamViewModel>(() => TeamViewModel(locator<TeamRepository>()));
   locator.registerFactory<SubmissionViewModel>(() => SubmissionViewModel(locator<SubmissionRepository>()));
-  locator.registerFactory<ProfileViewModel>(() => ProfileViewModel(locator<UserRepository>()));
+  locator.registerLazySingleton<ProfileViewModel>(() => ProfileViewModel(locator<UserRepository>()));
 }

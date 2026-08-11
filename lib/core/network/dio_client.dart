@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import '../constants/api_endpoints.dart';
+import '../constants/storage_keys.dart';
 import '../../app/di/locator.dart';
 import '../storage/secure_storage_service.dart';
 
@@ -19,7 +20,7 @@ class DioClient {
       InterceptorsWrapper(
         onRequest: (options, handler) async {
           final storage = locator<SecureStorageService>();
-          final token = await storage.read('access_token');
+          final token = await storage.read(StorageKeys.accessToken);
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
           }
@@ -31,7 +32,7 @@ class DioClient {
               error.requestOptions.path != ApiEndpoints.refreshToken) {
             
             final storage = locator<SecureStorageService>();
-            final refreshToken = await storage.read('refresh_token');
+            final refreshToken = await storage.read(StorageKeys.refreshToken);
 
             if (refreshToken != null && refreshToken.isNotEmpty) {
               try {
@@ -47,9 +48,9 @@ class DioClient {
                   final newRefreshToken = data['refreshToken'];
 
                   if (newAccessToken != null) {
-                    await storage.write('access_token', newAccessToken);
+                    await storage.write(StorageKeys.accessToken, newAccessToken);
                     if (newRefreshToken != null) {
-                      await storage.write('refresh_token', newRefreshToken);
+                      await storage.write(StorageKeys.refreshToken, newRefreshToken);
                     }
 
                     final retryOptions = error.requestOptions;
@@ -60,8 +61,8 @@ class DioClient {
                   }
                 }
               } catch (e) {
-                await storage.delete('access_token');
-                await storage.delete('refresh_token');
+                await storage.delete(StorageKeys.accessToken);
+                await storage.delete(StorageKeys.refreshToken);
               }
             }
           }

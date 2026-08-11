@@ -16,8 +16,18 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const LoginView());
       case RouteNames.register:
         return MaterialPageRoute(builder: (_) => const RegisterView());
+      case RouteNames.home:
       case RouteNames.eventList:
         return MaterialPageRoute(builder: (_) => const EventListView());
+      case RouteNames.forgotPassword:
+        return MaterialPageRoute(
+          builder: (_) => Scaffold(
+            appBar: AppBar(title: const Text('Quên mật khẩu')),
+            body: const Center(
+              child: Text('Tính năng quên mật khẩu đang được phát triển.'),
+            ),
+          ),
+        );
       case RouteNames.eventDetail:
         return MaterialPageRoute(builder: (_) => const EventDetailView());
       case RouteNames.myTeam:

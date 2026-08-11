@@ -8,4 +8,5 @@ class ApiEndpoints {
   static const String uploadFile = '/api/Storage/upload';
   static const String eventRoleInvitations = '/api/EventRoles/invitations';
   static const String tracks = '/api/Tracks';
+  static const String profile = '/api/Users/profile';
 }
