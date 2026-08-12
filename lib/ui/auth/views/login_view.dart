@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../app/di/locator.dart';
 import '../../../app/router/route_names.dart';
+import '../../common/viewmodels/user_role_viewmodel.dart';
 import '../../common/widgets/app_button.dart';
 import '../../common/widgets/app_text_field.dart';
 import '../../common/widgets/loading_indicator.dart';
@@ -43,7 +44,10 @@ class _LoginBodyState extends State<_LoginBody> {
       _passwordController.text,
     );
     if (success && mounted) {
-      Navigator.of(context).pushReplacementNamed(RouteNames.home);
+      await context.read<UserRoleViewModel>().fetchUserRoles();
+      if (mounted) {
+        Navigator.of(context).pushReplacementNamed(RouteNames.home);
+      }
     }
   }
 

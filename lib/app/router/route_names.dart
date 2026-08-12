@@ -9,4 +9,5 @@ class RouteNames {
   static const String createTeam = '/create-team';
   static const String submitResult = '/submit-result';
   static const String profile = '/profile';
+  static const String mentorDashboard = '/mentor';
 }

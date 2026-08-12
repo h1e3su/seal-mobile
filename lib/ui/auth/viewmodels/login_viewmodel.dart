@@ -48,5 +48,6 @@ class LoginViewModel extends BaseViewModel {
         setError(ErrorMapper.toMessage(ex));
         return false;
     }
+    return false;
   }
 }

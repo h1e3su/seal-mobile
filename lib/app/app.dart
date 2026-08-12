@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../core/context/user_role_context.dart';
 import 'di/locator.dart';
 import 'router/app_router.dart';
 import 'router/route_names.dart';
@@ -12,6 +13,7 @@ import '../ui/event/viewmodels/event_viewmodel.dart';
 import '../ui/team/viewmodels/team_viewmodel.dart';
 import '../ui/submission/viewmodels/submission_viewmodel.dart';
 import '../ui/profile/viewmodels/profile_viewmodel.dart';
+import '../ui/common/viewmodels/user_role_viewmodel.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -20,6 +22,13 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        // App-wide singleton context for role state
+        ChangeNotifierProvider<UserRoleContext>.value(
+          value: locator<UserRoleContext>(),
+        ),
+        ChangeNotifierProvider<UserRoleViewModel>(
+          create: (_) => locator<UserRoleViewModel>(),
+        ),
         ChangeNotifierProvider<LoginViewModel>(
           create: (_) => locator<LoginViewModel>(),
         ),

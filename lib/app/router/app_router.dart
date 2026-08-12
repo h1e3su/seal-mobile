@@ -3,6 +3,8 @@ import '../../ui/auth/views/login_view.dart';
 import '../../ui/auth/views/register_view.dart';
 import '../../ui/event/views/event_list_view.dart';
 import '../../ui/event/views/event_detail_view.dart';
+import '../../ui/home/views/home_view.dart';
+import '../../ui/mentor/views/mentor_dashboard_view.dart';
 import '../../ui/team/views/my_team_view.dart';
 import '../../ui/team/views/create_team_view.dart';
 import '../../ui/submission/views/submit_result_view.dart';
@@ -17,6 +19,7 @@ class AppRouter {
       case RouteNames.register:
         return MaterialPageRoute(builder: (_) => const RegisterView());
       case RouteNames.home:
+        return MaterialPageRoute(builder: (_) => const HomeView());
       case RouteNames.eventList:
         return MaterialPageRoute(builder: (_) => const EventListView());
       case RouteNames.forgotPassword:
@@ -38,6 +41,8 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const SubmitResultView());
       case RouteNames.profile:
         return MaterialPageRoute(builder: (_) => const ProfileView());
+      case RouteNames.mentorDashboard:
+        return MaterialPageRoute(builder: (_) => const MentorDashboardView());
       default:
         return MaterialPageRoute(builder: (_) => const LoginView());
     }
