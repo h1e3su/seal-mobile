@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import '../../core/network/api_result.dart';
 import '../../core/network/paginated_data.dart';
-import '../datasources/final_result_remote_datasource.dart';
+import '../services/final_result_remote_datasource.dart';
 import '../models/score/final_result_model.dart';
 
 class FinalResultRepository {

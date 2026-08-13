@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../app/di/locator.dart';
+import '../../../app/theme/app_colors.dart';
 import '../../../core/context/user_role_context.dart';
+import '../../common/widgets/app_button.dart';
+import '../../common/widgets/hud_card.dart';
 import '../../common/widgets/loading_indicator.dart';
+import '../../common/widgets/status_chip.dart';
 import '../viewmodels/mentor_dashboard_viewmodel.dart';
 import 'team_score_breakdown_view.dart';
 
@@ -41,26 +45,22 @@ class _MentorTeamListBodyState extends State<_MentorTeamListBody> {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<MentorDashboardViewModel>();
-    final theme = Theme.of(context);
 
     if (vm.isLoading) {
       return const Scaffold(
-        body: Center(child: LoadingIndicator()),
-      );
-    }
-
-    if (vm.hasError) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Đội thi Hạng mục')),
-        body: Center(
-          child: Text(vm.errorMessage ?? 'Đã có lỗi xảy ra', style: TextStyle(color: theme.colorScheme.error)),
-        ),
+        backgroundColor: AppColors.bgBase,
+        body: Center(child: LoadingIndicator(message: 'FETCHING TRACK TEAMS...')),
       );
     }
 
     return Scaffold(
+      backgroundColor: AppColors.bgBase,
       appBar: AppBar(
-        title: const Text('Đội thi trong Hạng mục'),
+        title: const Text('ĐỘI THI TRONG HẠNG MỤC (M3)'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -70,31 +70,66 @@ class _MentorTeamListBodyState extends State<_MentorTeamListBody> {
           }
         },
         child: vm.teams.isEmpty
-            ? const Center(child: Text('Chưa có đội thi nào trong Hạng mục này.'))
+            ? const Center(
+                child: Text(
+                  'CHƯA CÓ ĐỘI THI NÀO TRONG HẠNG MỤC NÀY.',
+                  style: TextStyle(fontFamily: 'JetBrains Mono', color: AppColors.textMuted),
+                ),
+              )
             : ListView.separated(
                 padding: const EdgeInsets.all(16.0),
                 itemCount: vm.teams.length,
                 separatorBuilder: (context, index) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {
                   final team = vm.teams[index];
-                  return Card(
-                    child: ListTile(
-                      title: Text(
-                        team.name,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Text('Trưởng nhóm: ${team.leaderName ?? "Chưa rõ"} • Trạng thái: ${team.status}'),
-                      trailing: ElevatedButton.icon(
-                        icon: const Icon(Icons.analytics, size: 18),
-                        label: const Text('Xem điểm'),
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => TeamScoreBreakdownView(teamId: team.id),
+                  return HudCard(
+                    accentBarColor: AppColors.accentMentor,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              team.name,
+                              style: const TextStyle(
+                                fontFamily: 'Chakra Petch',
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                              ),
                             ),
-                          );
-                        },
-                      ),
+                            StatusChip(
+                              label: team.status.toUpperCase(),
+                              variant: StatusChipVariant.info,
+                              fontSize: 9,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Leader: ${team.leaderName ?? "Chưa rõ"}',
+                          style: const TextStyle(
+                            fontFamily: 'Sora',
+                            fontSize: 12,
+                            color: AppColors.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        AppButton(
+                          label: 'XEM BÀI NỘP & CHẤM ĐIỂM',
+                          height: 36,
+                          variant: AppButtonVariant.secondary,
+                          icon: Icons.analytics_outlined,
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => TeamScoreBreakdownView(teamId: team.id),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
                     ),
                   );
                 },

@@ -1,6 +1,7 @@
 class ApiEndpoints {
   static const String baseUrl = 'https://api.sealswp391.xyz/';
   static const String login = '/api/Auth/login';
+  static const String googleLogin = '/api/Auth/google-login';
   static const String register = '/api/Auth/register';
   static const String events = '/api/Events';
 

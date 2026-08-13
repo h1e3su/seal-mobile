@@ -52,7 +52,7 @@ class App extends StatelessWidget {
         title: 'SEAL App',
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
-        initialRoute: RouteNames.login,
+        initialRoute: RouteNames.splash,
         onGenerateRoute: AppRouter.generateRoute,
       ),
     );

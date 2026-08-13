@@ -9,17 +9,28 @@ class UserRoleViewModel extends BaseViewModel {
 
   List<EventRoleModel> _userRoles = [];
   bool _isFetched = false;
+  String _activeRole = 'contestant';
 
   UserRoleViewModel(this._eventRoleRepository);
 
   List<EventRoleModel> get userRoles => _userRoles;
+  List<EventRoleModel> get roles => _userRoles;
   bool get isFetched => _isFetched;
+  bool get isLoggedIn => _isFetched || _userRoles.isNotEmpty;
 
   bool get hasStudentRole => _userRoles.any((r) => r.isStudent);
   bool get hasMentorRole => _userRoles.any((r) => r.isMentor);
   bool get hasJudgeRole => _userRoles.any((r) => r.isJudge);
   bool get hasECRole => _userRoles.any((r) => r.isEC);
   bool get hasAnyRole => _userRoles.isNotEmpty;
+  bool get isMentor => _activeRole == 'mentor' || hasMentorRole;
+
+  String get activeRole => _activeRole;
+
+  void setActiveRole(String role) {
+    _activeRole = role;
+    notifyListeners();
+  }
 
   List<EventRoleModel> get mentorRoles => _userRoles.where((r) => r.isMentor).toList();
   List<EventRoleModel> get studentRoles => _userRoles.where((r) => r.isStudent).toList();
@@ -40,6 +51,7 @@ class UserRoleViewModel extends BaseViewModel {
   void clear() {
     _userRoles = [];
     _isFetched = false;
+    _activeRole = 'contestant';
     setIdle();
   }
 }

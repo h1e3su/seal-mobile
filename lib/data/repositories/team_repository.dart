@@ -1,4 +1,4 @@
-import '../datasources/team_remote_datasource.dart';
+import '../services/team_remote_datasource.dart';
 import '../models/team/team_model.dart';
 
 class TeamRepository {

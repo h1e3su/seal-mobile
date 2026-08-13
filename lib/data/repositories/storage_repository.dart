@@ -1,4 +1,4 @@
-import '../datasources/storage_remote_datasource.dart';
+import '../services/storage_remote_datasource.dart';
 
 class StorageRepository {
   final StorageRemoteDataSource _remoteDataSource;

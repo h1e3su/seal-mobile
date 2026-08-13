@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import '../../core/network/api_result.dart';
-import '../datasources/user_remote_datasource.dart';
+import '../services/user_remote_datasource.dart';
 import '../models/user/user_profile_model.dart';
 
 class UserRepository {

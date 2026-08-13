@@ -1,19 +1,20 @@
 import 'package:get_it/get_it.dart';
 import '../../core/network/dio_client.dart';
 import '../../core/storage/secure_storage_service.dart';
+import '../../core/services/google_auth_service.dart';
 import '../../core/context/user_role_context.dart';
 
 // Data Sources
-import '../../data/datasources/auth_remote_datasource.dart';
-import '../../data/datasources/event_remote_datasource.dart';
-import '../../data/datasources/team_remote_datasource.dart';
-import '../../data/datasources/submit_result_remote_datasource.dart';
-import '../../data/datasources/user_remote_datasource.dart';
-import '../../data/datasources/event_role_remote_datasource.dart';
-import '../../data/datasources/storage_remote_datasource.dart';
-import '../../data/datasources/track_remote_datasource.dart';
-import '../../data/datasources/score_remote_datasource.dart';
-import '../../data/datasources/final_result_remote_datasource.dart';
+import '../../data/services/auth_remote_datasource.dart';
+import '../../data/services/event_remote_datasource.dart';
+import '../../data/services/team_remote_datasource.dart';
+import '../../data/services/submit_result_remote_datasource.dart';
+import '../../data/services/user_remote_datasource.dart';
+import '../../data/services/event_role_remote_datasource.dart';
+import '../../data/services/storage_remote_datasource.dart';
+import '../../data/services/track_remote_datasource.dart';
+import '../../data/services/score_remote_datasource.dart';
+import '../../data/services/final_result_remote_datasource.dart';
 
 // Repositories
 import '../../data/repositories/auth_repository.dart';
@@ -47,6 +48,7 @@ void setupLocator() {
   // Services & Context (Singletons)
   locator.registerLazySingleton<DioClient>(() => DioClient());
   locator.registerLazySingleton<SecureStorageService>(() => SecureStorageService());
+  locator.registerLazySingleton<GoogleAuthService>(() => GoogleAuthService());
   locator.registerLazySingleton<UserRoleContext>(() => UserRoleContext());
 
   // Data sources
@@ -79,7 +81,11 @@ void setupLocator() {
     () => HomeViewModel(locator<EventRoleRepository>(), locator<UserRoleContext>()),
   );
   locator.registerFactory<LoginViewModel>(
-    () => LoginViewModel(locator<AuthRepository>(), locator<SecureStorageService>()),
+    () => LoginViewModel(
+      locator<AuthRepository>(),
+      locator<SecureStorageService>(),
+      locator<GoogleAuthService>(),
+    ),
   );
   locator.registerFactory<RegisterViewModel>(
     () => RegisterViewModel(locator<AuthRepository>()),

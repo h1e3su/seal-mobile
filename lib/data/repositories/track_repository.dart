@@ -1,4 +1,4 @@
-import '../datasources/track_remote_datasource.dart';
+import '../services/track_remote_datasource.dart';
 import '../models/event/track_model.dart';
 
 class TrackRepository {

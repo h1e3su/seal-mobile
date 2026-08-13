@@ -12,6 +12,8 @@ class HomeViewModel extends BaseViewModel {
 
   UserRoleContext get roleContext => _roleContext;
 
+  Future<void> initHome() async => init();
+
   Future<void> init() async {
     setLoading();
     final result = await _eventRoleRepository.getUserRoles();

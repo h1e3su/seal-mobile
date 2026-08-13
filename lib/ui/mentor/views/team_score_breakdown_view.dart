@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../app/di/locator.dart';
+import '../../../app/theme/app_colors.dart';
 import '../../../data/models/score/judge_score_model.dart';
+import '../../common/widgets/clipped_container.dart';
+import '../../common/widgets/hud_card.dart';
 import '../../common/widgets/loading_indicator.dart';
+import '../../common/widgets/status_chip.dart';
 import '../viewmodels/team_score_breakdown_viewmodel.dart';
 
 class TeamScoreBreakdownView extends StatelessWidget {
@@ -43,148 +47,171 @@ class _TeamScoreBreakdownBodyState extends State<_TeamScoreBreakdownBody> {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<TeamScoreBreakdownViewModel>();
-    final theme = Theme.of(context);
 
     if (vm.isLoading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Bảng điểm chi tiết')),
-        body: const Center(child: LoadingIndicator()),
-      );
-    }
-
-    if (vm.hasError) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Bảng điểm chi tiết')),
-        body: Center(
-          child: Text(
-            vm.errorMessage ?? 'Đã có lỗi xảy ra',
-            style: TextStyle(color: theme.colorScheme.error),
-          ),
-        ),
+        backgroundColor: AppColors.bgBase,
+        appBar: AppBar(title: const Text('BẢNG ĐIỂM CHI TIẾT (M4)')),
+        body: const Center(child: LoadingIndicator(message: 'FETCHING SCORE BREAKDOWN...')),
       );
     }
 
     final breakdown = vm.breakdown;
-    if (breakdown == null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Bảng điểm chi tiết')),
-        body: const Center(child: Text('Không tìm thấy thông tin bảng điểm')),
-      );
-    }
 
     return Scaffold(
+      backgroundColor: AppColors.bgBase,
       appBar: AppBar(
-        title: Text(breakdown.teamName.isNotEmpty ? breakdown.teamName : 'Bảng điểm chi tiết'),
+        title: Text(breakdown?.teamName.isNotEmpty == true ? breakdown!.teamName : 'BẢNG ĐIỂM CHI TIẾT (M4)'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Team Header
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  children: [
-                    const Icon(Icons.groups, size: 36),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            breakdown.teamName,
-                            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            'Mã đội: ${breakdown.teamId}',
-                            style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Submissions List
-            if (breakdown.submissions.isEmpty)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(24.0),
-                  child: Text('Chưa có bài nộp nào cho đội thi này.'),
-                ),
-              )
-            else
-              ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: breakdown.submissions.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 16),
-                itemBuilder: (context, index) {
-                  final submission = breakdown.submissions[index];
-                  final judgeScores = vm.visibleJudgeScores(submission);
-
-                  return Card(
-                    elevation: 2,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: breakdown == null
+          ? const Center(
+              child: Text('KHÔNG TÌM THẤY BẢNG ĐIỂM', style: TextStyle(fontFamily: 'JetBrains Mono', color: AppColors.textMuted)),
+            )
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Team Header Card HUD
+                  HudCard(
+                    accentBarColor: AppColors.accentJudge,
+                    child: Row(
+                      children: [
+                        ClippedContainer(
+                          width: 44,
+                          height: 44,
+                          backgroundColor: AppColors.surfaceContainerLowest,
+                          borderColor: AppColors.accentJudge,
+                          child: const Icon(Icons.shield_outlined, color: AppColors.accentJudge, size: 24),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Expanded(
-                                child: Text(
-                                  '${submission.trackName} - ${submission.roundName}',
-                                  style: theme.textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                              Text(
+                                breakdown.teamName,
+                                style: const TextStyle(
+                                  fontFamily: 'Chakra Petch',
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textPrimary,
                                 ),
                               ),
-                              Chip(
-                                label: Text(
-                                  submission.roundPublished ? 'Đã công bố' : 'Chưa công bố',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: submission.roundPublished ? Colors.green[800] : Colors.orange[800],
-                                  ),
+                              Text(
+                                'MÃ ĐỘI THI: ${breakdown.teamId}',
+                                style: const TextStyle(
+                                  fontFamily: 'JetBrains Mono',
+                                  fontSize: 11,
+                                  color: AppColors.textMuted,
                                 ),
-                                backgroundColor: submission.roundPublished ? Colors.green[50] : Colors.orange[50],
                               ),
                             ],
                           ),
-                          const Divider(),
-                          if (judgeScores == null)
-                            const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 12.0),
-                              child: Text(
-                                'Chưa công bố kết quả',
-                                style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
-                              ),
-                            )
-                          else if (judgeScores.isEmpty)
-                            const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 12.0),
-                              child: Text('Chưa có phiếu chấm điểm.'),
-                            )
-                          else
-                            Column(
-                              children: judgeScores.map((score) => _JudgeScoreTile(score: score)).toList(),
-                            ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  );
-                },
+                  ),
+                  const SizedBox(height: 20),
+
+                  const Text(
+                    'PHIẾU CHẤM ĐIỂM TỪ GIÁM KHẢO (EVALUATION BREAKDOWN)',
+                    style: TextStyle(
+                      fontFamily: 'JetBrains Mono',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.0,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  if (breakdown.submissions.isEmpty)
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(24.0),
+                        child: Text(
+                          'CHƯA CÓ BÀI NỘP NÀO CHO ĐỘI THI NÀY.',
+                          style: TextStyle(fontFamily: 'JetBrains Mono', color: AppColors.textMuted),
+                        ),
+                      ),
+                    )
+                  else
+                    ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: breakdown.submissions.length,
+                      separatorBuilder: (context, index) => const SizedBox(height: 14),
+                      itemBuilder: (context, index) {
+                        final submission = breakdown.submissions[index];
+                        final judgeScores = vm.visibleJudgeScores(submission);
+
+                        return HudCard(
+                          accentBarColor: AppColors.primary,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      '${submission.trackName} - ${submission.roundName}',
+                                      style: const TextStyle(
+                                        fontFamily: 'Chakra Petch',
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.textPrimary,
+                                      ),
+                                    ),
+                                  ),
+                                  StatusChip(
+                                    label: submission.roundPublished ? 'ĐÃ CÔNG BỐ' : 'CHỜ CÔNG BỐ',
+                                    variant: submission.roundPublished
+                                        ? StatusChipVariant.success
+                                        : StatusChipVariant.warning,
+                                    fontSize: 9,
+                                  ),
+                                ],
+                              ),
+                              const Divider(color: AppColors.borderMuted, height: 16),
+                              if (judgeScores == null)
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 12.0),
+                                  child: Text(
+                                    'Kết quả chưa được công bố công khai',
+                                    style: TextStyle(
+                                      fontFamily: 'Sora',
+                                      fontSize: 12,
+                                      fontStyle: FontStyle.italic,
+                                      color: AppColors.textMuted,
+                                    ),
+                                  ),
+                                )
+                              else if (judgeScores.isEmpty)
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 12.0),
+                                  child: Text(
+                                    'Chưa có phiếu chấm điểm từ giám khảo.',
+                                    style: TextStyle(fontFamily: 'Sora', fontSize: 12, color: AppColors.textMuted),
+                                  ),
+                                )
+                              else
+                                Column(
+                                  children: judgeScores.map((score) => _JudgeScoreTile(score: score)).toList(),
+                                ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                ],
               ),
-          ],
-        ),
-      ),
+            ),
     );
   }
 }
@@ -196,16 +223,11 @@ class _JudgeScoreTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
+    return ClippedContainer(
+      margin: const EdgeInsets.symmetric(vertical: 6.0),
       padding: const EdgeInsets.all(12.0),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
+      backgroundColor: AppColors.surfaceContainerLowest,
+      borderColor: AppColors.borderMuted,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -214,13 +236,20 @@ class _JudgeScoreTile extends StatelessWidget {
             children: [
               Text(
                 'Giám khảo: ${score.judgeName}',
-                style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontFamily: 'Sora',
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
               ),
               Text(
-                'Tổng: ${score.totalScore.toStringAsFixed(1)} điểm',
-                style: theme.textTheme.bodyMedium?.copyWith(
+                '${score.totalScore.toStringAsFixed(1)} Pts',
+                style: const TextStyle(
+                  fontFamily: 'JetBrains Mono',
+                  fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.primary,
+                  color: AppColors.primary,
                 ),
               ),
             ],
@@ -232,10 +261,18 @@ class _JudgeScoreTile extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('• ${c.criteriaName}', style: theme.textTheme.bodySmall),
+                      Text(
+                        '• ${c.criteriaName}',
+                        style: const TextStyle(fontFamily: 'Sora', fontSize: 12, color: AppColors.onSurfaceVariant),
+                      ),
                       Text(
                         '${c.value.toStringAsFixed(1)} / ${c.maxScore.toStringAsFixed(1)}',
-                        style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          fontFamily: 'JetBrains Mono',
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
                     ],
                   ),
@@ -245,7 +282,12 @@ class _JudgeScoreTile extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'Nhận xét: "${score.comment}"',
-              style: theme.textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
+              style: const TextStyle(
+                fontFamily: 'Sora',
+                fontSize: 11,
+                fontStyle: FontStyle.italic,
+                color: AppColors.textMuted,
+              ),
             ),
           ],
         ],

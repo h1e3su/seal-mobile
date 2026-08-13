@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import '../../core/network/api_result.dart';
 import '../../core/network/paginated_data.dart';
-import '../datasources/event_role_remote_datasource.dart';
+import '../services/event_role_remote_datasource.dart';
 import '../models/event_role/event_role_model.dart';
 
 class EventRoleRepository {

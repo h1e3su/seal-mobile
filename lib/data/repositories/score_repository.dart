@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import '../../core/network/api_result.dart';
-import '../datasources/score_remote_datasource.dart';
+import '../services/score_remote_datasource.dart';
 import '../models/score/score_breakdown_model.dart';
 
 class ScoreRepository {
