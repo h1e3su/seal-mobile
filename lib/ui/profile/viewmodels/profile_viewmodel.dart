@@ -1,5 +1,9 @@
+import '../../../app/di/locator.dart';
 import '../../../core/base/base_viewmodel.dart';
+import '../../../core/constants/storage_keys.dart';
+import '../../../core/context/user_role_context.dart';
 import '../../../core/network/api_result.dart';
+import '../../../core/storage/secure_storage_service.dart';
 import '../../../data/models/user/user_profile_model.dart';
 import '../../../data/repositories/user_repository.dart';
 
@@ -27,5 +31,18 @@ class ProfileViewModel extends BaseViewModel {
         setError(ex.toString());
         return false;
     }
+    return false;
+  }
+
+  Future<void> logout() async {
+    final storage = locator<SecureStorageService>();
+    await storage.delete(StorageKeys.accessToken);
+    await storage.delete(StorageKeys.refreshToken);
+    
+    // Clear user role context to prevent role leakage
+    locator<UserRoleContext>().clear();
+    
+    _profile = null;
+    setIdle();
   }
 }

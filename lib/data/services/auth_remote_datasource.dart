@@ -23,6 +23,18 @@ class AuthRemoteDataSource {
     return apiResponse.data;
   }
 
+  Future<AuthResponse> googleLogin(String idToken) async {
+    final response = await _dioClient.dio.post(
+      ApiEndpoints.googleLogin,
+      data: {'idToken': idToken},
+    );
+    final apiResponse = ApiResponse.fromJson(
+      response.data,
+      (json) => AuthResponse.fromJson(json as Map<String, dynamic>),
+    );
+    return apiResponse.data;
+  }
+
   Future<UserProfileModel> register(RegisterRequest request) async {
     final response = await _dioClient.dio.post(
       ApiEndpoints.register,

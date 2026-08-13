@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import '../../core/network/api_result.dart';
-import '../datasources/auth_remote_datasource.dart';
+import '../services/auth_remote_datasource.dart';
 import '../models/auth/login_request.dart';
 import '../models/auth/auth_response.dart';
 import '../models/auth/register_request.dart';
@@ -16,6 +16,17 @@ class AuthRepository {
       final result = await _dataSource.login(
         LoginRequest(email: username, password: password),
       );
+      return Success(result);
+    } on DioException catch (e) {
+      return Failure(e);
+    } catch (e) {
+      return Failure(Exception(e.toString()));
+    }
+  }
+
+  Future<ApiResult<AuthResponse>> loginWithGoogle(String idToken) async {
+    try {
+      final result = await _dataSource.googleLogin(idToken);
       return Success(result);
     } on DioException catch (e) {
       return Failure(e);

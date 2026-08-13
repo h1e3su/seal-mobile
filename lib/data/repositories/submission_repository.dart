@@ -1,4 +1,4 @@
-import '../datasources/submit_result_remote_datasource.dart';
+import '../services/submit_result_remote_datasource.dart';
 
 class SubmissionRepository {
   final SubmitResultRemoteDataSource _remoteDataSource;
