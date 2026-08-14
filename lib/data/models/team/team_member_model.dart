@@ -3,7 +3,10 @@ class TeamMemberModel {
   final String userId;
   final String fullName;
   final String email;
-  final String role; // Leader, Member
+  final String role; // TeamLeader, TeamMember, Member, Leader
+  final String registrationStatus; // Approved, Pending, Rejected, Unregistered
+  final String? studentCode;
+  final String? avatarUrl;
   final bool isAccepted;
 
   const TeamMemberModel({
@@ -11,17 +14,33 @@ class TeamMemberModel {
     required this.userId,
     required this.fullName,
     required this.email,
-    this.role = 'Member',
+    this.role = 'TeamMember',
+    this.registrationStatus = 'Approved',
+    this.studentCode,
+    this.avatarUrl,
     this.isAccepted = true,
   });
 
+  bool get isLeader =>
+      role.toLowerCase() == 'leader' ||
+      role.toLowerCase() == 'teamleader';
+
+  bool get isVerified =>
+      registrationStatus.toLowerCase() == 'approved';
+
   factory TeamMemberModel.fromJson(Map<String, dynamic> json) {
+    final rawRegStatus = json['registrationStatus']?.toString() ??
+        (json['isVerified'] == true ? 'Approved' : (json['isVerified'] == false ? 'Pending' : 'Approved'));
+
     return TeamMemberModel(
-      id: json['id']?.toString() ?? '',
-      userId: json['userId']?.toString() ?? json['user']?['id']?.toString() ?? '',
-      fullName: json['fullName']?.toString() ?? json['user']?['fullName']?.toString() ?? 'Thành viên',
-      email: json['email']?.toString() ?? json['user']?['email']?.toString() ?? '',
-      role: json['role']?.toString() ?? json['roleType']?.toString() ?? 'Member',
+      id: (json['id'] ?? json['memberId'] ?? '').toString(),
+      userId: (json['userId'] ?? json['user']?['id'] ?? json['id'] ?? '').toString(),
+      fullName: (json['fullName'] ?? json['user']?['fullName'] ?? json['name'] ?? 'Thành viên').toString(),
+      email: (json['email'] ?? json['user']?['email'] ?? '').toString(),
+      role: (json['roleInTeam'] ?? json['role'] ?? json['roleType'] ?? 'TeamMember').toString(),
+      registrationStatus: rawRegStatus,
+      studentCode: json['studentCode']?.toString() ?? json['user']?['studentCode']?.toString(),
+      avatarUrl: json['avatarUrl']?.toString() ?? json['user']?['avatarUrl']?.toString(),
       isAccepted: json['isAccepted'] ?? json['status'] == 'Accepted' ?? true,
     );
   }
@@ -32,7 +51,10 @@ class TeamMemberModel {
       'userId': userId,
       'fullName': fullName,
       'email': email,
-      'role': role,
+      'roleInTeam': role,
+      'registrationStatus': registrationStatus,
+      'studentCode': studentCode,
+      'avatarUrl': avatarUrl,
       'isAccepted': isAccepted,
     };
   }

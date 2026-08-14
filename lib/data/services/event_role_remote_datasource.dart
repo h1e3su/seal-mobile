@@ -26,4 +26,11 @@ class EventRoleRemoteDataSource {
     }
     return null;
   }
+
+  Future<void> respondRoleInvitation(String invitationId, bool isAccepted) async {
+    await _dioClient.dio.post(
+      '${ApiEndpoints.eventRoleInvitations}/$invitationId/respond',
+      queryParameters: {'isAccepted': isAccepted},
+    );
+  }
 }

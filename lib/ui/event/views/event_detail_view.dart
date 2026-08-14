@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../app/router/route_names.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../common/widgets/app_button.dart';
 import '../../common/widgets/app_text_field.dart';
 import '../../common/widgets/clipped_container.dart';
+import '../../../data/models/event/event_model.dart';
+import '../../../core/utils/student_verification_guard.dart';
+import '../../profile/viewmodels/profile_viewmodel.dart';
+import '../viewmodels/event_viewmodel.dart';
 
 class EventDetailView extends StatefulWidget {
-  const EventDetailView({super.key});
+  final EventModel? event;
+  const EventDetailView({super.key, this.event});
 
   @override
   State<EventDetailView> createState() => _EventDetailViewState();
@@ -19,6 +25,10 @@ class _EventDetailViewState extends State<EventDetailView> with SingleTickerProv
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final eventId = widget.event?.id ?? 'evt_001';
+      context.read<EventViewModel>().loadEventDetails(eventId);
+    });
   }
 
   @override
@@ -78,14 +88,24 @@ class _EventDetailViewState extends State<EventDetailView> with SingleTickerProv
 
   @override
   Widget build(BuildContext context) {
+    final eventVm = context.watch<EventViewModel>();
+    final event = widget.event ?? eventVm.selectedEvent ?? const EventModel(
+      id: 'evt_001',
+      title: 'SEAL HACKATHON 2026',
+      description: 'Cuộc thi phát triển giải pháp công nghệ số cho sinh viên toàn quốc.',
+    );
+
+    final rounds = eventVm.selectedEventRounds;
+    final tracks = eventVm.selectedEventTracks;
+
     return Scaffold(
       backgroundColor: AppColors.bgBase,
       appBar: AppBar(
         backgroundColor: AppColors.bgPanel,
         elevation: 0,
-        title: const Text(
-          'CHI TIẾT SỰ KIỆN',
-          style: TextStyle(
+        title: Text(
+          event.title.toUpperCase(),
+          style: const TextStyle(
             fontFamily: 'Chakra Petch',
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -109,12 +129,15 @@ class _EventDetailViewState extends State<EventDetailView> with SingleTickerProv
                   Positioned(
                     bottom: 12,
                     left: 16,
+                    right: 16,
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       color: AppColors.bgBase.withValues(alpha: 0.8),
-                      child: const Text(
-                        'SEAL HACKATHON 2026',
-                        style: TextStyle(fontFamily: 'Chakra Petch', fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                      child: Text(
+                        event.title.toUpperCase(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontFamily: 'Chakra Petch', fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                       ),
                     ),
                   ),
@@ -143,55 +166,89 @@ class _EventDetailViewState extends State<EventDetailView> with SingleTickerProv
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  // Tab 1: Rules
+                  // Tab 1: Rules & Description
                   ListView(
                     padding: const EdgeInsets.all(16),
-                    children: const [
+                    children: [
                       ClippedContainer(
-                        padding: EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Quy định đội thi:', style: TextStyle(fontFamily: 'Chakra Petch', fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.primary)),
-                            SizedBox(height: 8),
-                            Text('• Mỗi đội từ 3 đến 5 thành viên.\n• Tất cả thành viên phải hoàn tất xác minh hồ sơ sinh viên.\n• Không được nộp sản phẩm trùng lặp.', style: TextStyle(fontFamily: 'Sora', fontSize: 13, color: AppColors.textPrimary)),
+                            const Text('Mô tả sự kiện:', style: TextStyle(fontFamily: 'Chakra Petch', fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                            const SizedBox(height: 8),
+                            Text(event.description, style: const TextStyle(fontFamily: 'Sora', fontSize: 13, color: AppColors.textPrimary)),
+                            const SizedBox(height: 16),
+                            const Text('Quy định đội thi:', style: TextStyle(fontFamily: 'Chakra Petch', fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                            const SizedBox(height: 8),
+                            const Text('• Mỗi đội từ 3 đến 5 thành viên.\n• 100% thành viên phải hoàn tất duyệt hồ sơ sinh viên.\n• Không được nộp sản phẩm sao chép hoặc trùng lặp.', style: TextStyle(fontFamily: 'Sora', fontSize: 13, color: AppColors.textPrimary)),
                           ],
                         ),
                       ),
                     ],
                   ),
-                  // Tab 2: Timeline
+                  // Tab 2: Timeline / Rounds
                   ListView(
                     padding: const EdgeInsets.all(16),
-                    children: const [
-                      ClippedContainer(
-                        padding: EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Lịch trình chính:', style: TextStyle(fontFamily: 'Chakra Petch', fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.primary)),
-                            SizedBox(height: 8),
-                            Text('• Mở đăng ký: 15/08/2026\n• Hạn chốt đội: 25/08/2026\n• Vòng 1 Nộp bài: 05/09/2026\n• Chung kết: 30/09/2026', style: TextStyle(fontFamily: 'Sora', fontSize: 13, color: AppColors.textPrimary)),
-                          ],
-                        ),
-                      ),
+                    children: [
+                      if (rounds.isEmpty)
+                        const ClippedContainer(
+                          padding: EdgeInsets.all(16),
+                          child: Text(
+                            '• Mở đăng ký: 15/08/2026\n• Vòng 1 (Sơ loại): 05/09/2026\n• Vòng 2 (Chung kết): 30/09/2026',
+                            style: TextStyle(fontFamily: 'Sora', fontSize: 13, color: AppColors.textPrimary),
+                          ),
+                        )
+                      else
+                        ...rounds.map((r) => ClippedContainer(
+                              margin: const EdgeInsets.only(bottom: 10),
+                              padding: const EdgeInsets.all(14),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${r.order}. ${r.roundName.toUpperCase()}',
+                                    style: const TextStyle(fontFamily: 'Chakra Petch', fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.primary),
+                                  ),
+                                  if (r.advancementRule != null) ...[
+                                    const SizedBox(height: 6),
+                                    Text('Điều kiện: ${r.advancementRule}', style: const TextStyle(fontFamily: 'Sora', fontSize: 12, color: AppColors.textMuted)),
+                                  ],
+                                ],
+                              ),
+                            )),
                     ],
                   ),
                   // Tab 3: Tracks
                   ListView(
                     padding: const EdgeInsets.all(16),
-                    children: const [
-                      ClippedContainer(
-                        padding: EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Các Hạng Mục (Tracks):', style: TextStyle(fontFamily: 'Chakra Petch', fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.primary)),
-                            SizedBox(height: 8),
-                            Text('1. AI & Machine Learning Innovations\n2. Smart IoT & Embedded Systems\n3. Web3 & Blockchain Applications', style: TextStyle(fontFamily: 'Sora', fontSize: 13, color: AppColors.textPrimary)),
-                          ],
-                        ),
-                      ),
+                    children: [
+                      if (tracks.isEmpty)
+                        const ClippedContainer(
+                          padding: EdgeInsets.all(16),
+                          child: Text(
+                            '1. AI Innovation & Machine Learning\n2. Mobile App Architecture\n3. Web3 & Blockchain Systems',
+                            style: TextStyle(fontFamily: 'Sora', fontSize: 13, color: AppColors.textPrimary),
+                          ),
+                        )
+                      else
+                        ...tracks.map((t) => ClippedContainer(
+                              margin: const EdgeInsets.only(bottom: 10),
+                              padding: const EdgeInsets.all(14),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    t.name.toUpperCase(),
+                                    style: const TextStyle(fontFamily: 'Chakra Petch', fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.primary),
+                                  ),
+                                  if (t.description != null && t.description!.isNotEmpty) ...[
+                                    const SizedBox(height: 6),
+                                    Text(t.description!, style: const TextStyle(fontFamily: 'Sora', fontSize: 12, color: AppColors.textMuted)),
+                                  ],
+                                ],
+                              ),
+                            )),
                     ],
                   ),
                 ],
@@ -207,7 +264,17 @@ class _EventDetailViewState extends State<EventDetailView> with SingleTickerProv
                   Expanded(
                     child: AppButton(
                       label: '[ TẠO ĐỘI ]',
-                      onPressed: () => Navigator.of(context).pushNamed(RouteNames.myTeam),
+                      onPressed: () async {
+                        final profileVm = context.read<ProfileViewModel>();
+                        final canProceed = await StudentVerificationGuard.ensureVerified(
+                          context,
+                          profileVm,
+                          actionName: 'tạo đội thi cho sự kiện này',
+                        );
+                        if (canProceed && context.mounted) {
+                          Navigator.of(context).pushNamed(RouteNames.createTeam);
+                        }
+                      },
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -215,7 +282,17 @@ class _EventDetailViewState extends State<EventDetailView> with SingleTickerProv
                     child: AppButton(
                       label: '[ VÀO ĐỘI ]',
                       variant: AppButtonVariant.secondary,
-                      onPressed: _showJoinTeamBottomSheet,
+                      onPressed: () async {
+                        final profileVm = context.read<ProfileViewModel>();
+                        final canProceed = await StudentVerificationGuard.ensureVerified(
+                          context,
+                          profileVm,
+                          actionName: 'gia nhập đội thi sự kiện này',
+                        );
+                        if (canProceed && context.mounted) {
+                          _showJoinTeamBottomSheet();
+                        }
+                      },
                     ),
                   ),
                 ],

@@ -1,54 +1,58 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../app/di/locator.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../common/widgets/app_button.dart';
 import '../../common/widgets/app_text_field.dart';
 import '../../common/widgets/clipped_container.dart';
 import '../../common/widgets/status_chip.dart';
+import '../../../core/utils/student_verification_guard.dart';
+import '../../profile/viewmodels/profile_viewmodel.dart';
+import '../../event/viewmodels/event_viewmodel.dart';
 import '../viewmodels/team_viewmodel.dart';
 
-class CreateTeamView extends StatelessWidget {
+class CreateTeamView extends StatefulWidget {
   const CreateTeamView({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider<TeamViewModel>(
-      create: (_) => locator<TeamViewModel>(),
-      child: const _CreateTeamBody(),
-    );
-  }
+  State<CreateTeamView> createState() => _CreateTeamViewState();
 }
 
-class _CreateTeamBody extends StatefulWidget {
-  const _CreateTeamBody();
+class _CreateTeamViewState extends State<CreateTeamView> {
+  final _teamNameController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  String? _selectedEventId;
 
   @override
-  State<_CreateTeamBody> createState() => _CreateTeamBodyState();
-}
-
-class _CreateTeamBodyState extends State<_CreateTeamBody> {
-  final _teamNameController = TextEditingController();
-  String _selectedTrack = 'Track 1: AI & Machine Learning';
-
-  final List<String> _tracks = [
-    'Track 1: AI & Machine Learning',
-    'Track 2: Mobile App Architecture',
-    'Track 3: Web3 & Blockchain Systems',
-  ];
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<EventViewModel>().loadEvents();
+    });
+  }
 
   @override
   void dispose() {
     _teamNameController.dispose();
+    _descriptionController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final eventVm = context.watch<EventViewModel>();
+    final teamVm = context.watch<TeamViewModel>();
+    final events = eventVm.events;
+
+    if (_selectedEventId == null && events.isNotEmpty) {
+      _selectedEventId = events.first.id;
+    }
+
     return Scaffold(
       backgroundColor: AppColors.bgBase,
       appBar: AppBar(
         title: const Text('TẠO ĐỘI THI MỚI'),
+        backgroundColor: AppColors.bgPanel,
+        elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.primary),
           onPressed: () => Navigator.of(context).pop(),
@@ -95,8 +99,16 @@ class _CreateTeamBodyState extends State<_CreateTeamBody> {
                       prefixIcon: Icons.groups_outlined,
                     ),
                     const SizedBox(height: 18),
+                    AppTextField(
+                      controller: _descriptionController,
+                      label: 'Mô tả tóm tắt (Tùy chọn)',
+                      hint: 'Mục tiêu & định hướng dự án...',
+                      prefixIcon: Icons.description_outlined,
+                      maxLines: 3,
+                    ),
+                    const SizedBox(height: 18),
                     const Text(
-                      'HẠNG MỤC THAM GIA (TRACK)',
+                      'SỰ KIỆN THI ĐẤU',
                       style: TextStyle(
                         fontFamily: 'JetBrains Mono',
                         fontSize: 11,
@@ -115,14 +127,15 @@ class _CreateTeamBodyState extends State<_CreateTeamBody> {
                       ),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
-                          value: _selectedTrack,
+                          value: _selectedEventId,
                           isExpanded: true,
                           dropdownColor: AppColors.bgPanel,
-                          items: _tracks.map((t) {
+                          hint: const Text('Chọn sự kiện', style: TextStyle(color: AppColors.textMuted)),
+                          items: events.map((e) {
                             return DropdownMenuItem<String>(
-                              value: t,
+                              value: e.id,
                               child: Text(
-                                t,
+                                e.title,
                                 style: const TextStyle(
                                   fontFamily: 'Sora',
                                   fontSize: 13,
@@ -132,7 +145,7 @@ class _CreateTeamBodyState extends State<_CreateTeamBody> {
                             );
                           }).toList(),
                           onChanged: (val) {
-                            if (val != null) setState(() => _selectedTrack = val);
+                            if (val != null) setState(() => _selectedEventId = val);
                           },
                         ),
                       ),
@@ -140,9 +153,22 @@ class _CreateTeamBodyState extends State<_CreateTeamBody> {
                     const SizedBox(height: 24),
                     AppButton(
                       label: 'XÁC NHẬN TẠO ĐỘI THI',
-                      onPressed: () {
-                        if (_teamNameController.text.trim().isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
+                      isLoading: teamVm.isLoading,
+                      onPressed: () async {
+                        final messenger = ScaffoldMessenger.of(context);
+                        final nav = Navigator.of(context);
+                        final profileVm = context.read<ProfileViewModel>();
+
+                        final canProceed = await StudentVerificationGuard.ensureVerified(
+                          context,
+                          profileVm,
+                          actionName: 'tạo đội thi',
+                        );
+                        if (!canProceed) return;
+
+                        final name = _teamNameController.text.trim();
+                        if (name.isEmpty) {
+                          messenger.showSnackBar(
                             const SnackBar(
                               content: Text('Vui lòng nhập tên đội thi!'),
                               backgroundColor: AppColors.statusDanger,
@@ -150,13 +176,30 @@ class _CreateTeamBodyState extends State<_CreateTeamBody> {
                           );
                           return;
                         }
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Đã tạo đội thi thành công!'),
-                            backgroundColor: AppColors.statusSuccess,
-                          ),
+
+                        final eventId = _selectedEventId ?? (events.isNotEmpty ? events.first.id : '1');
+                        final success = await teamVm.createTeam(
+                          name: name,
+                          eventId: eventId,
+                          description: _descriptionController.text.trim(),
                         );
-                        Navigator.of(context).pop();
+
+                        if (success) {
+                          messenger.showSnackBar(
+                            const SnackBar(
+                              content: Text('Đã tạo đội thi thành công! Bạn là Trưởng nhóm.'),
+                              backgroundColor: AppColors.statusSuccess,
+                            ),
+                          );
+                          nav.pop();
+                        } else if (teamVm.errorMessage != null) {
+                          messenger.showSnackBar(
+                            SnackBar(
+                              content: Text(teamVm.errorMessage!),
+                              backgroundColor: AppColors.statusDanger,
+                            ),
+                          );
+                        }
                       },
                     ),
                   ],

@@ -1,6 +1,7 @@
 class UserProfileModel {
   final String id;
   final String? schoolId;
+  final String? schoolName;
   final String? studentCode;
   final String email;
   final String fullName;
@@ -15,6 +16,7 @@ class UserProfileModel {
   UserProfileModel({
     required this.id,
     this.schoolId,
+    this.schoolName,
     this.studentCode,
     required this.email,
     required this.fullName,
@@ -27,10 +29,13 @@ class UserProfileModel {
     this.photoStudentCardUrl,
   });
 
+  String? get studentCardImageUrl => photoStudentCardUrl;
+
   factory UserProfileModel.fromJson(Map<String, dynamic> json) {
     return UserProfileModel(
       id: json['id'] ?? '',
       schoolId: json['schoolId'],
+      schoolName: json['schoolName'] ?? json['school']?['name'],
       studentCode: json['studentCode'],
       email: json['email'] ?? '',
       fullName: json['fullName'] ?? '',
@@ -40,16 +45,23 @@ class UserProfileModel {
       isFpt: json['isFpt'] ?? false,
       isRejected: json['isRejected'] ?? false,
       isTemporary: json['isTemporary'] ?? false,
-      photoStudentCardUrl: json['photoStudentCardUrl'],
+      photoStudentCardUrl: json['photoStudentCardUrl'] ?? json['studentCardImageUrl'],
     );
   }
 
   bool get isPending => !isApproved && !isRejected;
 
+  String get registrationStatus {
+    if (isApproved) return 'Approved';
+    if (isRejected) return 'Rejected';
+    return 'Pending';
+  }
+
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
       'id': id,
       'schoolId': schoolId,
+      'schoolName': schoolName,
       'studentCode': studentCode,
       'email': email,
       'fullName': fullName,
@@ -60,6 +72,7 @@ class UserProfileModel {
       'isRejected': isRejected,
       'isTemporary': isTemporary,
       'photoStudentCardUrl': photoStudentCardUrl,
+      'studentCardImageUrl': photoStudentCardUrl,
     };
   }
 }

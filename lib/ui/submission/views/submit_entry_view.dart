@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
-import '../../../app/router/route_names.dart';
+import 'package:provider/provider.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../common/widgets/app_button.dart';
 import '../../common/widgets/app_text_field.dart';
 import '../../common/widgets/clipped_container.dart';
+import '../../event/viewmodels/event_viewmodel.dart';
+import '../../team/viewmodels/team_viewmodel.dart';
+import '../viewmodels/submission_viewmodel.dart';
 
 class SubmitEntryView extends StatefulWidget {
   const SubmitEntryView({super.key});
@@ -13,30 +16,44 @@ class SubmitEntryView extends StatefulWidget {
 }
 
 class _SubmitEntryViewState extends State<SubmitEntryView> {
-  String _selectedTrack = 'Track 1: AI & Data Science';
+  final _titleController = TextEditingController();
   final _urlController = TextEditingController();
   final _descController = TextEditingController();
+  String? _selectedTrackId;
   String? _urlError;
-  bool _isLoading = false;
 
-  final List<String> _tracks = [
-    'Track 1: AI & Data Science',
-    'Track 2: IoT & Embedded Hardware',
-    'Track 3: Blockchain Security',
-  ];
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final team = context.read<TeamViewModel>().myTeam;
+      if (team?.eventId != null) {
+        context.read<EventViewModel>().loadEventDetails(team!.eventId!);
+      }
+    });
+  }
 
   @override
   void dispose() {
+    _titleController.dispose();
     _urlController.dispose();
     _descController.dispose();
     super.dispose();
   }
 
   void _onSubmit() async {
+    final title = _titleController.text.trim();
     final url = _urlController.text.trim();
-    final urlRegex = RegExp(r'^(http|https):\/\/[^\s$.?#].[^\s]*$');
+    final desc = _descController.text.trim();
 
-    if (url.isEmpty || !urlRegex.hasMatch(url)) {
+    if (title.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng nhập tên đề tài/dự án!'), backgroundColor: AppColors.statusDanger),
+      );
+      return;
+    }
+
+    if (!SubmissionViewModel.isValidUrl(url)) {
       setState(() {
         _urlError = 'URL không đúng định dạng (phải bắt đầu bằng http:// hoặc https://)';
       });
@@ -44,16 +61,43 @@ class _SubmitEntryViewState extends State<SubmitEntryView> {
     }
     setState(() => _urlError = null);
 
-    setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 1200));
-    if (!mounted) return;
-    setState(() => _isLoading = false);
+    final teamVm = context.read<TeamViewModel>();
+    final submissionVm = context.read<SubmissionViewModel>();
+    final eventVm = context.read<EventViewModel>();
 
-    Navigator.of(context).pushReplacementNamed(RouteNames.submissionDetail);
+    final teamId = teamVm.myTeam?.id ?? 'team_demo';
+    final trackId = _selectedTrackId ?? (eventVm.selectedEventTracks.isNotEmpty ? eventVm.selectedEventTracks.first.id : 'trk_01');
+
+    final success = await submissionVm.submitEntry(
+      teamId: teamId,
+      trackId: trackId,
+      title: title,
+      description: desc.isNotEmpty ? desc : null,
+      submissionUrl: url,
+    );
+
+    if (success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Nộp bài dự thi thành công!'), backgroundColor: AppColors.statusSuccess),
+      );
+      Navigator.of(context).pop();
+    } else if (mounted && submissionVm.errorMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(submissionVm.errorMessage!), backgroundColor: AppColors.statusDanger),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final eventVm = context.watch<EventViewModel>();
+    final submissionVm = context.watch<SubmissionViewModel>();
+    final tracks = eventVm.selectedEventTracks;
+
+    if (_selectedTrackId == null && tracks.isNotEmpty) {
+      _selectedTrackId = tracks.first.id;
+    }
+
     return Scaffold(
       backgroundColor: AppColors.bgBase,
       appBar: AppBar(
@@ -80,23 +124,59 @@ class _SubmitEntryViewState extends State<SubmitEntryView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      AppTextField(
+                        controller: _titleController,
+                        label: 'Tên đề tài / giải pháp bài thi',
+                        hint: 'Ví dụ: Hệ thống phân loại thông minh',
+                        prefixIcon: Icons.title,
+                      ),
+                      const SizedBox(height: 16),
                       const Text(
-                        'Chọn Track thi đấu',
-                        style: TextStyle(fontFamily: 'Sora', fontSize: 13, color: AppColors.textMuted),
+                        'HẠNG MỤC (TRACK) THI ĐẤU',
+                        style: TextStyle(fontFamily: 'JetBrains Mono', fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.onSurfaceVariant),
                       ),
                       const SizedBox(height: 6),
-                      DropdownButtonFormField<String>(
-                        initialValue: _selectedTrack,
-                        dropdownColor: AppColors.bgPanel,
-                        style: const TextStyle(fontFamily: 'Sora', fontSize: 14, color: AppColors.textPrimary),
-                        items: _tracks.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
-                        onChanged: (val) {
-                          if (val != null) setState(() => _selectedTrack = val);
-                        },
-                        decoration: const InputDecoration(
-                          filled: true,
-                          fillColor: AppColors.bgInput,
-                          border: OutlineInputBorder(borderSide: BorderSide(color: AppColors.borderMuted)),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: AppColors.bgInput,
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(color: AppColors.borderMuted),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: _selectedTrackId,
+                            isExpanded: true,
+                            dropdownColor: AppColors.bgPanel,
+                            hint: const Text('Chọn hạng mục', style: TextStyle(color: AppColors.textMuted)),
+                            items: tracks.isNotEmpty
+                                ? tracks.map((t) {
+                                    return DropdownMenuItem<String>(
+                                      value: t.id,
+                                      child: Text(
+                                        t.name,
+                                        style: const TextStyle(
+                                          fontFamily: 'Sora',
+                                          fontSize: 13,
+                                          color: AppColors.textPrimary,
+                                        ),
+                                      ),
+                                    );
+                                  }).toList()
+                                : const [
+                                    DropdownMenuItem<String>(
+                                      value: 'trk_01',
+                                      child: Text('Track 1: AI Innovation', style: TextStyle(color: AppColors.textPrimary)),
+                                    ),
+                                    DropdownMenuItem<String>(
+                                      value: 'trk_02',
+                                      child: Text('Track 2: Mobile App Development', style: TextStyle(color: AppColors.textPrimary)),
+                                    ),
+                                  ],
+                            onChanged: (val) {
+                              if (val != null) setState(() => _selectedTrackId = val);
+                            },
+                          ),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -125,7 +205,7 @@ class _SubmitEntryViewState extends State<SubmitEntryView> {
               color: AppColors.bgPanel,
               child: AppButton(
                 label: '// NỘP BÀI >',
-                isLoading: _isLoading,
+                isLoading: submissionVm.isLoading,
                 onPressed: _onSubmit,
               ),
             ),

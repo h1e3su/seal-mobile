@@ -1,5 +1,6 @@
 import '../../../core/base/base_viewmodel.dart';
 import '../../../core/context/user_role_context.dart';
+import '../../../core/network/api_result.dart';
 import '../../../data/models/team/team_model.dart';
 import '../../../data/repositories/team_repository.dart';
 
@@ -27,11 +28,13 @@ class MentorDashboardViewModel extends BaseViewModel {
       return;
     }
 
-    try {
-      _teams = await _teamRepository.getTeams(trackId: targetTrackId);
-      setSuccess();
-    } catch (e) {
-      setError('Không thể tải danh sách đội thi trong Hạng mục');
+    final res = await _teamRepository.getTeams(trackId: targetTrackId);
+    switch (res) {
+      case Success(data: final data):
+        _teams = data;
+        setSuccess();
+      case Failure(exception: final ex):
+        setError(ex.toString());
     }
   }
 }
