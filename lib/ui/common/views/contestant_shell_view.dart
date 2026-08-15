@@ -35,6 +35,7 @@ class _ContestantShellViewState extends State<ContestantShellView> {
     return Scaffold(
       backgroundColor: AppColors.bgBase,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: AppColors.bgPanel,
         elevation: 0,
         title: Row(

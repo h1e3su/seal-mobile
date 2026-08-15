@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../../app/router/route_names.dart';
+import 'package:provider/provider.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../common/widgets/hud_card.dart';
-import '../../team/widgets/team_invite_bottom_sheet.dart';
-import '../../mentor/widgets/mentor_role_invite_bottom_sheet.dart';
+import '../../common/widgets/status_chip.dart';
+import '../viewmodels/notifications_viewmodel.dart';
 
 class NotificationsView extends StatefulWidget {
   const NotificationsView({super.key});
@@ -13,135 +13,282 @@ class NotificationsView extends StatefulWidget {
 }
 
 class _NotificationsViewState extends State<NotificationsView> {
-  final List<Map<String, dynamic>> _notifs = [
-    {
-      'type': 'TEAM_INVITE',
-      'title': 'Lời mời tham gia đội thi',
-      'body': 'Lê Văn A đã mời bạn vào đội CYBER OPERATIVES',
-      'time': '10 phút trước',
-      'isRead': false,
-      'icon': Icons.group_add,
-    },
-    {
-      'type': 'MENTOR_INVITE',
-      'title': 'Lời mời làm Mentor',
-      'body': 'BTC đã mời bạn làm Mentor cho Track AI Hackathon 2026',
-      'time': '1 giờ trước',
-      'isRead': false,
-      'icon': Icons.psychology,
-    },
-    {
-      'type': 'GRADE_RESULT',
-      'title': 'Đã có kết quả chấm bài Vòng 1',
-      'body': 'Đội của bạn đạt 92.5 điểm, xem xếp hạng ngay',
-      'time': '2 giờ trước',
-      'isRead': true,
-      'icon': Icons.emoji_events,
-    },
-    {
-      'type': 'DEADLINE',
-      'title': 'Sắp hết hạn nộp bài Vòng 1',
-      'body': 'Còn lại 18h 45m trước khi cổng nộp bài đóng',
-      'time': '5 giờ trước',
-      'isRead': true,
-      'icon': Icons.timer,
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<NotificationsViewModel>().loadNotifications();
+    });
+  }
 
-  void _onNotificationTap(Map<String, dynamic> item) {
-    setState(() => item['isRead'] = true);
-    final type = item['type'];
+  void _showTeamInviteDialog(BuildContext context, NotificationsViewModel vm, String inviteId, String teamName, String invitedBy) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.bgPanel,
+        title: const Text('LỜI MỜI VÀO ĐỘI THI', style: TextStyle(fontFamily: 'Chakra Petch', color: AppColors.primary)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Bạn nhận được lời mời tham gia đội thi "$teamName" từ $invitedBy.', style: const TextStyle(fontFamily: 'Sora', color: AppColors.textPrimary)),
+            const SizedBox(height: 12),
+            const Text('Bạn có đồng ý tham gia đội này không?', style: TextStyle(fontFamily: 'Sora', fontSize: 13, color: AppColors.textMuted)),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              await vm.respondTeamInvitation(inviteId, false);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Đã từ chối lời mời vào đội.'), backgroundColor: AppColors.textMuted),
+                );
+              }
+            },
+            child: const Text('TỪ CHỐI', style: TextStyle(color: AppColors.statusDanger)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              final success = await vm.respondTeamInvitation(inviteId, true);
+              if (success && context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Đã gia nhập đội thi thành công!'), backgroundColor: AppColors.statusSuccess),
+                );
+              }
+            },
+            child: const Text('ĐỒNG Ý', style: TextStyle(fontFamily: 'Sora', color: AppColors.bgBase)),
+          ),
+        ],
+      ),
+    );
+  }
 
-    if (type == 'TEAM_INVITE') {
-      showModalBottomSheet(
-        context: context,
-        backgroundColor: Colors.transparent,
-        builder: (_) => const TeamInviteBottomSheet(),
-      );
-    } else if (type == 'MENTOR_INVITE') {
-      showModalBottomSheet(
-        context: context,
-        backgroundColor: Colors.transparent,
-        builder: (_) => const MentorRoleInviteBottomSheet(),
-      );
-    } else if (type == 'GRADE_RESULT') {
-      Navigator.of(context).pushNamed(RouteNames.leaderboard);
-    } else if (type == 'DEADLINE') {
-      Navigator.of(context).pushNamed(RouteNames.submissionList);
-    }
+  void _showRoleInviteDialog(BuildContext context, NotificationsViewModel vm, String inviteId, String roleName, String eventName, String? trackName) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.bgPanel,
+        title: Text('LỜI MỜI LÀM $roleName'.toUpperCase(), style: const TextStyle(fontFamily: 'Chakra Petch', color: AppColors.primary)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Ban tổ chức mời bạn đảm nhận vai trò $roleName cho sự kiện "$eventName"${trackName != null ? " ($trackName)" : ""}.', style: const TextStyle(fontFamily: 'Sora', color: AppColors.textPrimary)),
+            const SizedBox(height: 12),
+            const Text('Bạn có đồng ý nhận lời mời không?', style: TextStyle(fontFamily: 'Sora', fontSize: 13, color: AppColors.textMuted)),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              await vm.respondRoleInvitation(inviteId, false);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Đã từ chối lời mời vai trò.'), backgroundColor: AppColors.textMuted),
+                );
+              }
+            },
+            child: const Text('TỪ CHỐI', style: TextStyle(color: AppColors.statusDanger)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              final success = await vm.respondRoleInvitation(inviteId, true);
+              if (success && context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Đã nhận lời mời vai trò thành công!'), backgroundColor: AppColors.statusSuccess),
+                );
+              }
+            },
+            child: const Text('ĐỒNG Ý', style: TextStyle(fontFamily: 'Sora', color: AppColors.bgBase)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.bgBase,
-      appBar: AppBar(
-        backgroundColor: AppColors.bgPanel,
-        elevation: 0,
-        title: const Text(
-          'NOTIFICATIONS CENTER',
-          style: TextStyle(
-            fontFamily: 'Chakra Petch',
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
-          ),
-        ),
-      ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: _notifs.length,
-        itemBuilder: (ctx, index) {
-          final item = _notifs[index];
-          final isRead = item['isRead'] as bool;
+    return Consumer<NotificationsViewModel>(
+      builder: (context, vm, _) {
+        final teamInvites = vm.teamInvitations;
+        final roleInvites = vm.roleInvitations;
+        final isEmpty = teamInvites.isEmpty && roleInvites.isEmpty;
 
-          return HudCard(
-            margin: const EdgeInsets.only(bottom: 12),
-            accentBarColor: isRead ? AppColors.borderMuted : AppColors.primary,
-            onTap: () => _onNotificationTap(item),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(item['icon'], color: isRead ? AppColors.textMuted : AppColors.primary, size: 24),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        return Scaffold(
+          backgroundColor: AppColors.bgBase,
+          appBar: AppBar(
+            backgroundColor: AppColors.bgPanel,
+            elevation: 0,
+            title: const Text(
+              'NOTIFICATIONS CENTER',
+              style: TextStyle(
+                fontFamily: 'Chakra Petch',
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.refresh, color: AppColors.primary),
+                onPressed: () => vm.loadNotifications(),
+              ),
+            ],
+          ),
+          body: vm.isLoading && isEmpty
+              ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+              : isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Expanded(
-                            child: Text(
-                              item['title'],
-                              style: TextStyle(
-                                fontFamily: 'Chakra Petch',
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: isRead ? AppColors.textMuted : AppColors.textPrimary,
-                              ),
-                            ),
+                          const Icon(Icons.notifications_none_outlined, size: 64, color: AppColors.textMuted),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'KHÔNG CÓ THÔNG BÁO HOẶC LỜI MỜI NÀO',
+                            style: TextStyle(fontFamily: 'Chakra Petch', fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                           ),
-                          if (!isRead)
-                            Container(
-                              width: 8,
-                              height: 8,
-                              decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-                            ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Tất cả lời mời tham gia đội thi hoặc sự kiện sẽ xuất hiện ở đây.',
+                            style: TextStyle(fontFamily: 'Sora', fontSize: 13, color: AppColors.textMuted),
+                          ),
                         ],
                       ),
-                      const SizedBox(height: 4),
-                      Text(item['body'], style: const TextStyle(fontFamily: 'Sora', fontSize: 13, color: AppColors.textPrimary)),
-                      const SizedBox(height: 6),
-                      Text(item['time'], style: const TextStyle(fontFamily: 'JetBrains Mono', fontSize: 11, color: AppColors.textMuted)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
+                    )
+                  : ListView(
+                      padding: const EdgeInsets.all(16),
+                      children: [
+                        if (teamInvites.isNotEmpty) ...[
+                          const Text(
+                            'LỜI MỜI VÀO ĐỘI THI',
+                            style: TextStyle(fontFamily: 'Chakra Petch', fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.primary),
+                          ),
+                          const SizedBox(height: 10),
+                          ...teamInvites.map((item) {
+                            return HudCard(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              accentBarColor: AppColors.accentTeam,
+                              onTap: () => _showTeamInviteDialog(
+                                context,
+                                vm,
+                                item.id,
+                                item.teamName,
+                                item.invitedByUserName ?? 'Trưởng nhóm',
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Icon(Icons.group_add, color: AppColors.accentTeam, size: 24),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                item.teamName.toUpperCase(),
+                                                style: const TextStyle(
+                                                  fontFamily: 'Chakra Petch',
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: AppColors.textPrimary,
+                                                ),
+                                              ),
+                                            ),
+                                            const StatusChip(label: 'TEAM INVITE', variant: StatusChipVariant.info, fontSize: 8),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'Người mời: ${item.invitedByUserName ?? "Thành viên"} (${item.eventName ?? "Sự kiện"})',
+                                          style: const TextStyle(fontFamily: 'Sora', fontSize: 12, color: AppColors.textMuted),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        const Text('Chạm để xem và phản hồi lời mời >', style: TextStyle(fontFamily: 'JetBrains Mono', fontSize: 11, color: AppColors.primary)),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+                          const SizedBox(height: 16),
+                        ],
+
+                        if (roleInvites.isNotEmpty) ...[
+                          const Text(
+                            'LỜI MỜI VAI TRÒ SỰ KIỆN (MENTOR / JUDGE)',
+                            style: TextStyle(fontFamily: 'Chakra Petch', fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.accentMentor),
+                          ),
+                          const SizedBox(height: 10),
+                          ...roleInvites.map((item) {
+                            return HudCard(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              accentBarColor: AppColors.accentMentor,
+                              onTap: () => _showRoleInviteDialog(
+                                context,
+                                vm,
+                                item.id,
+                                item.roleName,
+                                item.eventName,
+                                item.trackName,
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Icon(Icons.psychology, color: AppColors.accentMentor, size: 24),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                'VAI TRÒ: ${item.roleName.toUpperCase()}',
+                                                style: const TextStyle(
+                                                  fontFamily: 'Chakra Petch',
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: AppColors.textPrimary,
+                                                ),
+                                              ),
+                                            ),
+                                            StatusChip(label: item.roleName.toUpperCase(), variant: StatusChipVariant.role, fontSize: 8),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'Sự kiện: ${item.eventName}${item.trackName != null ? " — ${item.trackName}" : ""}',
+                                          style: const TextStyle(fontFamily: 'Sora', fontSize: 12, color: AppColors.textMuted),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        const Text('Chạm để phản hồi lời mời >', style: TextStyle(fontFamily: 'JetBrains Mono', fontSize: 11, color: AppColors.primary)),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+                        ],
+                      ],
+                    ),
+        );
+      },
     );
   }
 }

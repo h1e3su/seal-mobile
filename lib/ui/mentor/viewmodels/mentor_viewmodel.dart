@@ -16,6 +16,7 @@ class MentorViewModel extends BaseViewModel {
   final ScoreRepository _scoreRepository;
   final FinalResultRepository _finalResultRepository;
 
+  List<TrackModel> _myTracks = [];
   TrackModel? _currentTrack;
   List<TeamModel> _teams = [];
   ScoreBreakdownModel? _selectedScoreBreakdown;
@@ -28,16 +29,34 @@ class MentorViewModel extends BaseViewModel {
     this._finalResultRepository,
   );
 
+  List<TrackModel> get myTracks => _myTracks;
   TrackModel? get currentTrack => _currentTrack;
   List<TeamModel> get teams => _teams;
   ScoreBreakdownModel? get selectedScoreBreakdown => _selectedScoreBreakdown;
   List<FinalResultModel> get leaderboard => _leaderboard;
 
+  Future<void> loadMyTracks([String? eventId]) async {
+    setLoading();
+    final result = await _trackRepository.getTracks(eventId: eventId);
+    if (result is Success<List<TrackModel>>) {
+      _myTracks = result.data;
+      setSuccess();
+    } else {
+      setError('Lấy danh sách Hạng mục thất bại');
+    }
+  }
+
   Future<void> loadTrackWorkspace(String trackId) async {
     setLoading();
     try {
-      _currentTrack = await _trackRepository.getTrackById(trackId);
-      _teams = await _teamRepository.getTeams(trackId: trackId);
+      final trackResult = await _trackRepository.getTrackById(trackId);
+      if (trackResult is Success<TrackModel?>) {
+        _currentTrack = trackResult.data;
+      }
+      final teamsResult = await _teamRepository.getTeams(trackId: trackId);
+      if (teamsResult is Success<List<TeamModel>>) {
+        _teams = teamsResult.data;
+      }
       setSuccess();
     } catch (e) {
       setError('Khởi tạo thông tin Mentor thất bại: ${e.toString()}');

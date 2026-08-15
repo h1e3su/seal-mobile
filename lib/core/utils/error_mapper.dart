@@ -18,9 +18,42 @@ class ErrorMapper {
 
     if (exception is DioException) {
       final data = exception.response?.data;
-      if (data is Map && data['message'] is String) {
-        return data['message'] as String;
+      if (data is Map) {
+        // 1. Check validation errors dictionary
+        if (data['errors'] is Map) {
+          final errorsMap = data['errors'] as Map;
+          for (final value in errorsMap.values) {
+            if (value is List && value.isNotEmpty) {
+              return value.first.toString();
+            }
+            if (value is String && value.isNotEmpty) {
+              return value;
+            }
+          }
+        }
+
+        // 2. Check direct message
+        if (data['message'] is String && (data['message'] as String).isNotEmpty) {
+          final msg = data['message'] as String;
+          if (!msg.contains('SEAL_Domain.Base.BaseException')) {
+            return msg;
+          }
+        }
+
+        // 3. Check detail
+        if (data['detail'] is String && (data['detail'] as String).isNotEmpty) {
+          final detail = data['detail'] as String;
+          if (!detail.contains('SEAL_Domain.Base.BaseException')) {
+            return detail;
+          }
+        }
+
+        // 4. Check title
+        if (data['title'] is String && (data['title'] as String).isNotEmpty) {
+          return data['title'] as String;
+        }
       }
+
       switch (exception.type) {
         case DioExceptionType.connectionTimeout:
         case DioExceptionType.receiveTimeout:
@@ -28,7 +61,7 @@ class ErrorMapper {
         case DioExceptionType.connectionError:
           return 'Không thể kết nối máy chủ. Kiểm tra mạng.';
         default:
-          return 'Đã có lỗi xảy ra. Vui lòng thử lại.';
+          return 'Yêu cầu không hợp lệ hoặc thông tin chưa đầy đủ.';
       }
     }
     return 'Đã có lỗi xảy ra. Vui lòng thử lại.';

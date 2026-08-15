@@ -11,14 +11,16 @@ class MentorRankingViewModel extends BaseViewModel {
   List<FinalResultModel> _results = [];
   List<FinalResultModel> get results => _results;
 
-  Future<void> loadRanking(String roundId, String myTrackId) async {
+  Future<void> loadRanking(String roundId, [String? trackId]) async {
     setLoading();
     final result = await _finalResultRepository.getRoundResults(roundId);
     switch (result) {
       case Success(data: final paginated):
-        // Filter by Mentor's assigned Track client-side
-        _results = paginated.data.where((r) => r.trackId == myTrackId).toList()
-          ..sort((a, b) => a.rank.compareTo(b.rank));
+        var list = paginated.data;
+        if (trackId != null && trackId.isNotEmpty) {
+          list = list.where((r) => r.trackId == trackId).toList();
+        }
+        _results = list..sort((a, b) => a.rank.compareTo(b.rank));
         setSuccess();
       case Failure(exception: final ex):
         setError(ErrorMapper.toMessage(ex));

@@ -35,6 +35,7 @@ class _MentorShellViewState extends State<MentorShellView> {
     return Scaffold(
       backgroundColor: AppColors.bgBase,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: AppColors.bgPanel,
         elevation: 0,
         title: Row(

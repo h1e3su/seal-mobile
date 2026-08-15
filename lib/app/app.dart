@@ -14,6 +14,13 @@ import '../ui/team/viewmodels/team_viewmodel.dart';
 import '../ui/submission/viewmodels/submission_viewmodel.dart';
 import '../ui/profile/viewmodels/profile_viewmodel.dart';
 import '../ui/common/viewmodels/user_role_viewmodel.dart';
+import '../ui/home/viewmodels/home_viewmodel.dart';
+import '../ui/appeals/viewmodels/appeals_viewmodel.dart';
+import '../ui/notifications/viewmodels/notifications_viewmodel.dart';
+import '../ui/mentor/viewmodels/mentor_viewmodel.dart';
+import '../ui/mentor/viewmodels/mentor_dashboard_viewmodel.dart';
+import '../ui/mentor/viewmodels/mentor_ranking_viewmodel.dart';
+import '../ui/mentor/viewmodels/team_score_breakdown_viewmodel.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -28,6 +35,9 @@ class App extends StatelessWidget {
         ),
         ChangeNotifierProvider<UserRoleViewModel>(
           create: (_) => locator<UserRoleViewModel>(),
+        ),
+        ChangeNotifierProvider<HomeViewModel>(
+          create: (_) => locator<HomeViewModel>(),
         ),
         ChangeNotifierProvider<LoginViewModel>(
           create: (_) => locator<LoginViewModel>(),
@@ -46,6 +56,24 @@ class App extends StatelessWidget {
         ),
         ChangeNotifierProvider<ProfileViewModel>(
           create: (_) => locator<ProfileViewModel>(),
+        ),
+        ChangeNotifierProvider<AppealsViewModel>(
+          create: (_) => locator<AppealsViewModel>(),
+        ),
+        ChangeNotifierProvider<NotificationsViewModel>(
+          create: (_) => locator<NotificationsViewModel>(),
+        ),
+        ChangeNotifierProvider<MentorViewModel>(
+          create: (_) => locator<MentorViewModel>(),
+        ),
+        ChangeNotifierProvider<MentorDashboardViewModel>(
+          create: (_) => locator<MentorDashboardViewModel>(),
+        ),
+        ChangeNotifierProvider<MentorRankingViewModel>(
+          create: (_) => locator<MentorRankingViewModel>(),
+        ),
+        ChangeNotifierProvider<TeamScoreBreakdownViewModel>(
+          create: (_) => locator<TeamScoreBreakdownViewModel>(),
         ),
       ],
       child: MaterialApp(

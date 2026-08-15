@@ -25,4 +25,22 @@ class FinalResultRemoteDataSource {
       (json) => FinalResultModel.fromJson(json),
     );
   }
+
+  Future<List<FinalResultModel>> getTeamResults(String teamId) async {
+    final response = await _dioClient.dio.get('${ApiEndpoints.finalResults}/team/$teamId');
+    if (response.data is List) {
+      return (response.data as List)
+          .whereType<Map<String, dynamic>>()
+          .map((json) => FinalResultModel.fromJson(json))
+          .toList();
+    }
+    if (response.data is Map<String, dynamic>) {
+      final list = response.data['data'] as List? ?? response.data['items'] as List? ?? [];
+      return list
+          .whereType<Map<String, dynamic>>()
+          .map((json) => FinalResultModel.fromJson(json))
+          .toList();
+    }
+    return [];
+  }
 }

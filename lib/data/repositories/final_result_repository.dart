@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
 import '../../core/network/api_result.dart';
 import '../../core/network/paginated_data.dart';
-import '../services/final_result_remote_datasource.dart';
 import '../models/score/final_result_model.dart';
+import '../services/final_result_remote_datasource.dart';
 
 class FinalResultRepository {
   final FinalResultRemoteDataSource _dataSource;
@@ -19,6 +19,17 @@ class FinalResultRepository {
         pageNumber: pageNumber,
         pageSize: pageSize,
       );
+      return Success(result);
+    } on DioException catch (e) {
+      return Failure(e);
+    } catch (e) {
+      return Failure(Exception(e.toString()));
+    }
+  }
+
+  Future<ApiResult<List<FinalResultModel>>> getTeamResults(String teamId) async {
+    try {
+      final result = await _dataSource.getTeamResults(teamId);
       return Success(result);
     } on DioException catch (e) {
       return Failure(e);
