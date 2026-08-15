@@ -29,6 +29,8 @@ class GoogleAuthService {
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
 
+      debugPrint(googleAuth.toString());
+
       final String? idToken = googleAuth.idToken;
       debugPrint(
         '[GoogleAuthService] Successfully fetched idToken (Length: ${idToken?.length ?? 0})',

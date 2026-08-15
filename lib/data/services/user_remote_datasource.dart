@@ -12,7 +12,8 @@ class UserRemoteDataSource {
 
   Future<UserProfileModel> getProfile() async {
     final response = await _dioClient.dio.get(ApiEndpoints.profile);
-    final data = response.data is Map<String, dynamic> && response.data['data'] != null
+    final data =
+        response.data is Map<String, dynamic> && response.data['data'] != null
         ? response.data['data']
         : response.data;
     return UserProfileModel.fromJson(data as Map<String, dynamic>);
@@ -20,7 +21,8 @@ class UserRemoteDataSource {
 
   Future<MyInvitationsModel> getMyInvitations() async {
     final response = await _dioClient.dio.get(ApiEndpoints.myInvitations);
-    final data = response.data is Map<String, dynamic> && response.data['data'] != null
+    final data =
+        response.data is Map<String, dynamic> && response.data['data'] != null
         ? response.data['data']
         : response.data;
     if (data is Map<String, dynamic>) {
@@ -37,7 +39,7 @@ class UserRemoteDataSource {
     final body = <String, dynamic>{
       'studentCode': ?studentCode,
       'schoolId': ?schoolId,
-      'studentCardImageUrl': ?studentCardImageUrl,
+      'photoStudentCardUrl': ?studentCardImageUrl,
     };
 
     try {
@@ -45,7 +47,8 @@ class UserRemoteDataSource {
         ApiEndpoints.studentProfiles,
         data: body,
       );
-      final data = response.data is Map<String, dynamic> && response.data['data'] != null
+      final data =
+          response.data is Map<String, dynamic> && response.data['data'] != null
           ? response.data['data']
           : response.data;
       return UserProfileModel.fromJson(data as Map<String, dynamic>);
@@ -54,14 +57,18 @@ class UserRemoteDataSource {
         ApiEndpoints.studentProfiles,
         data: body,
       );
-      final data = response.data is Map<String, dynamic> && response.data['data'] != null
+      final data =
+          response.data is Map<String, dynamic> && response.data['data'] != null
           ? response.data['data']
           : response.data;
       return UserProfileModel.fromJson(data as Map<String, dynamic>);
     }
   }
 
-  Future<void> requestUnblock({required String email, required String reason}) async {
+  Future<void> requestUnblock({
+    required String email,
+    required String reason,
+  }) async {
     await _dioClient.dio.post(
       ApiEndpoints.requestUnblock,
       data: {'email': email, 'reason': reason},
@@ -136,9 +143,12 @@ class UserRemoteDataSource {
   }
 
   Future<FptStudentMockModel?> verifyFptStudent(String studentCode) async {
-    final response = await _dioClient.dio.get('${ApiEndpoints.fptMockStudent}/$studentCode');
+    final response = await _dioClient.dio.get(
+      '${ApiEndpoints.fptMockStudent}/$studentCode',
+    );
     if (response.data != null) {
-      final data = response.data is Map<String, dynamic> && response.data['data'] != null
+      final data =
+          response.data is Map<String, dynamic> && response.data['data'] != null
           ? response.data['data']
           : response.data;
       if (data is Map<String, dynamic>) {
@@ -148,7 +158,10 @@ class UserRemoteDataSource {
     return null;
   }
 
-  Future<void> changePassword({required String currentPassword, required String newPassword}) async {
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
     await _dioClient.dio.put(
       ApiEndpoints.changePassword,
       data: {'currentPassword': currentPassword, 'newPassword': newPassword},
