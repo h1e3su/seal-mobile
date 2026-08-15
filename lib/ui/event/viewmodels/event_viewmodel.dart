@@ -30,11 +30,13 @@ class EventViewModel extends BaseViewModel {
         return e.status.toUpperCase() == _selectedStatusFilter.toUpperCase();
       }).toList();
     }
-    if (_searchQuery.isNotEmpty) {
+    if (_searchQuery.trim().isNotEmpty) {
+      final q = _searchQuery.trim().toLowerCase();
       list = list
           .where((e) =>
-              e.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-              e.description.toLowerCase().contains(_searchQuery.toLowerCase()))
+              e.title.toLowerCase().contains(q) ||
+              e.description.toLowerCase().contains(q) ||
+              (e.location != null && e.location!.toLowerCase().contains(q)))
           .toList();
     }
     return list;
@@ -58,9 +60,9 @@ class EventViewModel extends BaseViewModel {
     notifyListeners();
   }
 
-  Future<void> loadEvents() async {
+  Future<void> loadEvents({String? searchTerm}) async {
     setLoading();
-    final result = await _eventRepository.getEvents();
+    final result = await _eventRepository.getEvents(searchTerm: searchTerm);
     switch (result) {
       case Success(data: final paginated):
         _events = paginated.data;
@@ -68,6 +70,10 @@ class EventViewModel extends BaseViewModel {
       case Failure(exception: final ex):
         setError(ErrorMapper.toMessage(ex));
     }
+  }
+
+  Future<void> refreshEvents() async {
+    await loadEvents(searchTerm: _searchQuery.isNotEmpty ? _searchQuery : null);
   }
 
   Future<void> loadUpcomingEvents() async {

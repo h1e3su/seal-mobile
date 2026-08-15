@@ -32,20 +32,57 @@ class UserProfileModel {
   String? get studentCardImageUrl => photoStudentCardUrl;
 
   factory UserProfileModel.fromJson(Map<String, dynamic> json) {
+    final rawStatus = (json['registrationStatus'] ??
+            json['status'] ??
+            json['userStatus'] ??
+            json['studentStatus'] ??
+            '')
+        .toString()
+        .trim()
+        .toLowerCase();
+
+    final bool approved = json['isApproved'] == true ||
+        json['isApproved'] == 'true' ||
+        json['isApproved'] == 1 ||
+        rawStatus == 'approved' ||
+        rawStatus == 'active' ||
+        rawStatus == 'verified';
+
+    final bool rejected = json['isRejected'] == true ||
+        json['isRejected'] == 'true' ||
+        json['isRejected'] == 1 ||
+        rawStatus == 'rejected';
+
+    final String emailStr = (json['email'] ?? '').toString();
+    final String? studentCodeStr = json['studentCode']?.toString();
+
+    final bool fpt = json['isFpt'] == true ||
+        json['isFpt'] == 'true' ||
+        emailStr.toLowerCase().endsWith('@fpt.edu.vn') ||
+        (studentCodeStr != null &&
+            studentCodeStr.isNotEmpty &&
+            RegExp(r'^(SE|SS|SA|SB|IA|GD|MC|DS)\d+', caseSensitive: false)
+                .hasMatch(studentCodeStr));
+
+    final bool student = json['isStudent'] == true ||
+        json['isStudent'] == 'true' ||
+        json['isStudent'] == 1 ||
+        (studentCodeStr != null && studentCodeStr.isNotEmpty);
+
     return UserProfileModel(
-      id: json['id'] ?? '',
-      schoolId: json['schoolId'],
-      schoolName: json['schoolName'] ?? json['school']?['name'],
-      studentCode: json['studentCode'],
-      email: json['email'] ?? '',
-      fullName: json['fullName'] ?? '',
-      isStudent: json['isStudent'] ?? false,
-      isAdmin: json['isAdmin'] ?? false,
-      isApproved: json['isApproved'] ?? false,
-      isFpt: json['isFpt'] ?? false,
-      isRejected: json['isRejected'] ?? false,
-      isTemporary: json['isTemporary'] ?? false,
-      photoStudentCardUrl: json['photoStudentCardUrl'] ?? json['studentCardImageUrl'],
+      id: (json['id'] ?? json['userId'] ?? '').toString(),
+      schoolId: json['schoolId']?.toString(),
+      schoolName: json['schoolName']?.toString() ?? json['school']?['name']?.toString(),
+      studentCode: studentCodeStr,
+      email: emailStr,
+      fullName: (json['fullName'] ?? json['name'] ?? json['userName'] ?? '').toString(),
+      isStudent: student,
+      isAdmin: json['isAdmin'] == true || json['isAdmin'] == 'true' || json['isAdmin'] == 1,
+      isApproved: approved,
+      isFpt: fpt,
+      isRejected: rejected,
+      isTemporary: json['isTemporary'] == true || json['isTemporary'] == 'true' || json['isTemporary'] == 1,
+      photoStudentCardUrl: json['photoStudentCardUrl']?.toString() ?? json['studentCardImageUrl']?.toString(),
     );
   }
 

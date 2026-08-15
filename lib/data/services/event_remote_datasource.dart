@@ -10,10 +10,22 @@ class EventRemoteDataSource {
 
   const EventRemoteDataSource(this._dioClient);
 
-  Future<PaginatedData<EventModel>> getEvents({int pageNumber = 1, int pageSize = 20}) async {
+  Future<PaginatedData<EventModel>> getEvents({
+    int pageNumber = 1,
+    int pageSize = 20,
+    String? searchTerm,
+  }) async {
+    final queryParams = <String, dynamic>{
+      'pageNumber': pageNumber,
+      'pageSize': pageSize,
+    };
+    if (searchTerm != null && searchTerm.trim().isNotEmpty) {
+      queryParams['search'] = searchTerm.trim();
+      queryParams['searchTerm'] = searchTerm.trim();
+    }
     final response = await _dioClient.dio.get(
       ApiEndpoints.events,
-      queryParameters: {'pageNumber': pageNumber, 'pageSize': pageSize},
+      queryParameters: queryParams,
     );
     return PaginatedData<EventModel>.fromJson(
       response.data,

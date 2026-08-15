@@ -11,9 +11,17 @@ class EventRepository {
 
   const EventRepository(this._remoteDataSource);
 
-  Future<ApiResult<PaginatedData<EventModel>>> getEvents({int pageNumber = 1, int pageSize = 20}) async {
+  Future<ApiResult<PaginatedData<EventModel>>> getEvents({
+    int pageNumber = 1,
+    int pageSize = 20,
+    String? searchTerm,
+  }) async {
     try {
-      final result = await _remoteDataSource.getEvents(pageNumber: pageNumber, pageSize: pageSize);
+      final result = await _remoteDataSource.getEvents(
+        pageNumber: pageNumber,
+        pageSize: pageSize,
+        searchTerm: searchTerm,
+      );
       return Success(result);
     } on DioException catch (e) {
       return Failure(e);

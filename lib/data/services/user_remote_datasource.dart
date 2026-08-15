@@ -12,11 +12,15 @@ class UserRemoteDataSource {
 
   Future<UserProfileModel> getProfile() async {
     final response = await _dioClient.dio.get(ApiEndpoints.profile);
-    final data =
-        response.data is Map<String, dynamic> && response.data['data'] != null
-        ? response.data['data']
-        : response.data;
-    return UserProfileModel.fromJson(data as Map<String, dynamic>);
+    dynamic raw = response.data;
+    if (raw is Map<String, dynamic>) {
+      if (raw['data'] is Map<String, dynamic>) {
+        raw = raw['data'];
+      } else if (raw['result'] is Map<String, dynamic>) {
+        raw = raw['result'];
+      }
+    }
+    return UserProfileModel.fromJson(raw as Map<String, dynamic>);
   }
 
   Future<MyInvitationsModel> getMyInvitations() async {

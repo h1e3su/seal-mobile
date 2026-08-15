@@ -84,7 +84,11 @@ void setupLocator() {
   // ViewModels (Factories for per-view lifecycle)
   locator.registerLazySingleton<UserRoleViewModel>(() => UserRoleViewModel(locator<EventRoleRepository>()));
   locator.registerFactory<HomeViewModel>(
-    () => HomeViewModel(locator<EventRoleRepository>(), locator<UserRoleContext>()),
+    () => HomeViewModel(
+      locator<EventRoleRepository>(),
+      locator<EventRepository>(),
+      locator<UserRoleContext>(),
+    ),
   );
   locator.registerFactory<LoginViewModel>(
     () => LoginViewModel(
