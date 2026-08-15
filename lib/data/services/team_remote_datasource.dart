@@ -2,6 +2,9 @@ import '../../core/constants/api_endpoints.dart';
 import '../../core/network/dio_client.dart';
 import '../models/team/team_model.dart';
 
+import '../../core/utils/response_parser.dart';
+import 'package:dio/dio.dart';
+
 class TeamRemoteDataSource {
   final DioClient _dioClient;
 
@@ -17,53 +20,44 @@ class TeamRemoteDataSource {
       queryParameters: queryParams,
     );
 
-    if (response.data is List) {
-      return (response.data as List)
-          .whereType<Map<String, dynamic>>()
-          .map((json) => TeamModel.fromJson(json))
-          .toList();
-    }
-    if (response.data is Map<String, dynamic>) {
-      final list = response.data['data'] as List? ?? response.data['items'] as List? ?? [];
-      return list
-          .whereType<Map<String, dynamic>>()
-          .map((json) => TeamModel.fromJson(json))
-          .toList();
-    }
-    return [];
+    final rawList = ResponseParser.extractList(response.data);
+    return rawList
+        .whereType<Map<String, dynamic>>()
+        .map((json) => TeamModel.fromJson(json))
+        .toList();
   }
 
   Future<TeamModel?> getTeamById(String id) async {
     final response = await _dioClient.dio.get('${ApiEndpoints.teams}/$id');
-    if (response.data != null) {
-      if (response.data is Map<String, dynamic>) {
-        final data = response.data['data'] ?? response.data;
-        if (data is Map<String, dynamic>) {
-          return TeamModel.fromJson(data);
-        }
-      }
+    final map = ResponseParser.extractMap(response.data);
+    if (map != null) {
+      return TeamModel.fromJson(map);
     }
     return null;
   }
 
   Future<TeamModel?> getMyTeam({String? eventId}) async {
-    final queryParams = <String, dynamic>{};
-    if (eventId != null) queryParams['eventId'] = eventId;
-
-    final response = await _dioClient.dio.get(
-      ApiEndpoints.myTeam,
-      queryParameters: queryParams,
-    );
-
-    if (response.data != null) {
-      if (response.data is Map<String, dynamic>) {
-        final data = response.data['data'] ?? response.data;
-        if (data is Map<String, dynamic>) {
-          return TeamModel.fromJson(data);
-        }
-      }
+    if (eventId == null || eventId.isEmpty) {
+      return null;
     }
-    return null;
+
+    try {
+      final response = await _dioClient.dio.get(
+        ApiEndpoints.myTeam,
+        queryParameters: {'eventId': eventId},
+      );
+
+      final map = ResponseParser.extractMap(response.data);
+      if (map != null) {
+        return TeamModel.fromJson(map);
+      }
+      return null;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 400 || e.response?.statusCode == 404) {
+        return null;
+      }
+      rethrow;
+    }
   }
 
   Future<TeamModel> createTeam({

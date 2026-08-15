@@ -1,5 +1,6 @@
 import '../../core/constants/api_endpoints.dart';
 import '../../core/network/dio_client.dart';
+import '../../core/utils/response_parser.dart';
 import '../models/submission/submit_result_model.dart';
 
 class SubmitResultRemoteDataSource {
@@ -112,19 +113,10 @@ class SubmitResultRemoteDataSource {
   }
 
   List<SubmitResultModel> _parseSubmissionList(dynamic data) {
-    if (data is List) {
-      return data
-          .whereType<Map<String, dynamic>>()
-          .map((json) => SubmitResultModel.fromJson(json))
-          .toList();
-    }
-    if (data is Map<String, dynamic>) {
-      final rawList = data['data'] as List? ?? data['items'] as List? ?? [];
-      return rawList
-          .whereType<Map<String, dynamic>>()
-          .map((json) => SubmitResultModel.fromJson(json))
-          .toList();
-    }
-    return [];
+    final rawList = ResponseParser.extractList(data);
+    return rawList
+        .whereType<Map<String, dynamic>>()
+        .map((json) => SubmitResultModel.fromJson(json))
+        .toList();
   }
 }

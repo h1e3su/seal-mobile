@@ -1,5 +1,6 @@
 import '../../core/constants/api_endpoints.dart';
 import '../../core/network/dio_client.dart';
+import '../../core/utils/response_parser.dart';
 import '../models/score/appeal_model.dart';
 
 class AppealRemoteDataSource {
@@ -63,19 +64,10 @@ class AppealRemoteDataSource {
   }
 
   List<AppealModel> _parseAppealsList(dynamic data) {
-    if (data is List) {
-      return data
-          .whereType<Map<String, dynamic>>()
-          .map((json) => AppealModel.fromJson(json))
-          .toList();
-    }
-    if (data is Map<String, dynamic>) {
-      final rawList = data['data'] as List? ?? data['items'] as List? ?? [];
-      return rawList
-          .whereType<Map<String, dynamic>>()
-          .map((json) => AppealModel.fromJson(json))
-          .toList();
-    }
-    return [];
+    final rawList = ResponseParser.extractList(data);
+    return rawList
+        .whereType<Map<String, dynamic>>()
+        .map((json) => AppealModel.fromJson(json))
+        .toList();
   }
 }

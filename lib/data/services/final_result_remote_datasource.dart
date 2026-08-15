@@ -3,6 +3,8 @@ import '../../core/network/dio_client.dart';
 import '../../core/network/paginated_data.dart';
 import '../models/score/final_result_model.dart';
 
+import '../../core/utils/response_parser.dart';
+
 class FinalResultRemoteDataSource {
   final DioClient _dioClient;
 
@@ -28,19 +30,10 @@ class FinalResultRemoteDataSource {
 
   Future<List<FinalResultModel>> getTeamResults(String teamId) async {
     final response = await _dioClient.dio.get('${ApiEndpoints.finalResults}/team/$teamId');
-    if (response.data is List) {
-      return (response.data as List)
-          .whereType<Map<String, dynamic>>()
-          .map((json) => FinalResultModel.fromJson(json))
-          .toList();
-    }
-    if (response.data is Map<String, dynamic>) {
-      final list = response.data['data'] as List? ?? response.data['items'] as List? ?? [];
-      return list
-          .whereType<Map<String, dynamic>>()
-          .map((json) => FinalResultModel.fromJson(json))
-          .toList();
-    }
-    return [];
+    final rawList = ResponseParser.extractList(response.data);
+    return rawList
+        .whereType<Map<String, dynamic>>()
+        .map((json) => FinalResultModel.fromJson(json))
+        .toList();
   }
 }
