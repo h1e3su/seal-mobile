@@ -5,6 +5,8 @@ import '../models/event/event_model.dart';
 import '../models/event/round_model.dart';
 import '../models/event/track_model.dart';
 
+import '../../core/utils/response_parser.dart';
+
 class EventRemoteDataSource {
   final DioClient _dioClient;
 
@@ -46,31 +48,18 @@ class EventRemoteDataSource {
 
   Future<List<EventModel>> getMyEvents() async {
     final response = await _dioClient.dio.get(ApiEndpoints.myEvents);
-    if (response.data is List) {
-      return (response.data as List)
-          .whereType<Map<String, dynamic>>()
-          .map((json) => EventModel.fromJson(json))
-          .toList();
-    }
-    if (response.data is Map<String, dynamic>) {
-      final list = response.data['data'] as List? ?? response.data['items'] as List? ?? [];
-      return list
-          .whereType<Map<String, dynamic>>()
-          .map((json) => EventModel.fromJson(json))
-          .toList();
-    }
-    return [];
+    final rawList = ResponseParser.extractList(response.data);
+    return rawList
+        .whereType<Map<String, dynamic>>()
+        .map((json) => EventModel.fromJson(json))
+        .toList();
   }
 
   Future<EventModel?> getEventById(String id) async {
     final response = await _dioClient.dio.get('${ApiEndpoints.events}/$id');
-    if (response.data != null) {
-      if (response.data is Map<String, dynamic>) {
-        final data = response.data['data'] ?? response.data;
-        if (data is Map<String, dynamic>) {
-          return EventModel.fromJson(data);
-        }
-      }
+    final map = ResponseParser.extractMap(response.data);
+    if (map != null) {
+      return EventModel.fromJson(map);
     }
     return null;
   }
@@ -80,20 +69,11 @@ class EventRemoteDataSource {
       ApiEndpoints.roundsByEvent,
       queryParameters: {'eventId': eventId},
     );
-    if (response.data is List) {
-      return (response.data as List)
-          .whereType<Map<String, dynamic>>()
-          .map((json) => RoundModel.fromJson(json))
-          .toList();
-    }
-    if (response.data is Map<String, dynamic>) {
-      final list = response.data['data'] as List? ?? response.data['items'] as List? ?? [];
-      return list
-          .whereType<Map<String, dynamic>>()
-          .map((json) => RoundModel.fromJson(json))
-          .toList();
-    }
-    return [];
+    final rawList = ResponseParser.extractList(response.data);
+    return rawList
+        .whereType<Map<String, dynamic>>()
+        .map((json) => RoundModel.fromJson(json))
+        .toList();
   }
 
   Future<List<TrackModel>> getTracksByEvent(String eventId) async {
@@ -101,19 +81,10 @@ class EventRemoteDataSource {
       ApiEndpoints.tracksByEvent,
       queryParameters: {'eventId': eventId},
     );
-    if (response.data is List) {
-      return (response.data as List)
-          .whereType<Map<String, dynamic>>()
-          .map((json) => TrackModel.fromJson(json))
-          .toList();
-    }
-    if (response.data is Map<String, dynamic>) {
-      final list = response.data['data'] as List? ?? response.data['items'] as List? ?? [];
-      return list
-          .whereType<Map<String, dynamic>>()
-          .map((json) => TrackModel.fromJson(json))
-          .toList();
-    }
-    return [];
+    final rawList = ResponseParser.extractList(response.data);
+    return rawList
+        .whereType<Map<String, dynamic>>()
+        .map((json) => TrackModel.fromJson(json))
+        .toList();
   }
 }

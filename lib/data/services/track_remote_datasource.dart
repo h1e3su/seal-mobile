@@ -2,6 +2,8 @@ import '../../core/constants/api_endpoints.dart';
 import '../../core/network/dio_client.dart';
 import '../models/event/track_model.dart';
 
+import '../../core/utils/response_parser.dart';
+
 class TrackRemoteDataSource {
   final DioClient _dioClient;
 
@@ -16,20 +18,11 @@ class TrackRemoteDataSource {
       queryParameters: queryParams,
     );
 
-    if (response.data is List) {
-      return (response.data as List)
-          .whereType<Map<String, dynamic>>()
-          .map((json) => TrackModel.fromJson(json))
-          .toList();
-    }
-    if (response.data is Map<String, dynamic>) {
-      final list = response.data['data'] as List? ?? response.data['items'] as List? ?? [];
-      return list
-          .whereType<Map<String, dynamic>>()
-          .map((json) => TrackModel.fromJson(json))
-          .toList();
-    }
-    return [];
+    final rawList = ResponseParser.extractList(response.data);
+    return rawList
+        .whereType<Map<String, dynamic>>()
+        .map((json) => TrackModel.fromJson(json))
+        .toList();
   }
 
   Future<TrackModel?> getTrackById(String trackId) async {

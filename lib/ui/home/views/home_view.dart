@@ -50,9 +50,14 @@ class _HomeBodyState extends State<_HomeBody> {
       }
     });
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       context.read<ProfileViewModel>().fetchProfile();
-      context.read<TeamViewModel>().loadMyTeam();
+      final homeVm = context.read<HomeViewModel>();
+      await homeVm.initHome();
+      if (mounted) {
+        final activeEventId = homeVm.events.isNotEmpty ? homeVm.events.first.id : null;
+        context.read<TeamViewModel>().loadMyTeam(activeEventId);
+      }
     });
   }
 
@@ -64,11 +69,15 @@ class _HomeBodyState extends State<_HomeBody> {
   }
 
   Future<void> _handleRefresh() async {
+    final homeVm = context.read<HomeViewModel>();
     await Future.wait([
       context.read<ProfileViewModel>().fetchProfile(),
-      context.read<TeamViewModel>().loadMyTeam(),
-      context.read<HomeViewModel>().initHome(),
+      homeVm.initHome(),
     ]);
+    if (mounted) {
+      final activeEventId = homeVm.events.isNotEmpty ? homeVm.events.first.id : null;
+      await context.read<TeamViewModel>().loadMyTeam(activeEventId);
+    }
   }
 
   String _formatDuration(Duration d) {
