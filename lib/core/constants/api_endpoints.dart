@@ -1,5 +1,5 @@
 class ApiEndpoints {
-  static const String baseUrl = 'https://api.sealswp391.xyz/';
+  static const String baseUrl = 'https://seal-bl3w-backend.onrender.com/';
 
   // 1. Auth & Account
   static const String login = '/api/Auth/login';
