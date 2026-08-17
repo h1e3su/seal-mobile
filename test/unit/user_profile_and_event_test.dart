@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:seal/core/context/user_role_context.dart';
-import 'package:seal/core/network/api_result.dart';
 import 'package:seal/core/network/dio_client.dart';
 import 'package:seal/core/network/paginated_data.dart';
 import 'package:seal/data/models/event/event_model.dart';
@@ -34,11 +33,17 @@ class FakeEventRemoteDataSource extends EventRemoteDataSource {
   ];
 
   @override
-  Future<PaginatedData<EventModel>> getEvents({int pageNumber = 1, int pageSize = 20, String? searchTerm}) async {
+  Future<PaginatedData<EventModel>> getEvents({
+    int pageNumber = 1,
+    int pageSize = 20,
+    String? searchTerm,
+  }) async {
     var filtered = mockEvents;
     if (searchTerm != null && searchTerm.isNotEmpty) {
       filtered = filtered
-          .where((e) => e.title.toLowerCase().contains(searchTerm.toLowerCase()))
+          .where(
+            (e) => e.title.toLowerCase().contains(searchTerm.toLowerCase()),
+          )
           .toList();
     }
     return PaginatedData<EventModel>(
@@ -54,7 +59,10 @@ class FakeEventRoleRemoteDataSource extends EventRoleRemoteDataSource {
   FakeEventRoleRemoteDataSource() : super(DioClient());
 
   @override
-  Future<PaginatedData<EventRoleModel>> getUserRoles({int pageNumber = 1, int pageSize = 20}) async {
+  Future<PaginatedData<EventRoleModel>> getUserRoles({
+    int pageNumber = 1,
+    int pageSize = 20,
+  }) async {
     return const PaginatedData<EventRoleModel>(
       data: [],
       currentPage: 1,
@@ -66,58 +74,67 @@ class FakeEventRoleRemoteDataSource extends EventRoleRemoteDataSource {
 
 void main() {
   group('UserProfileModel Approval & Status Tests', () {
-    test('Correctly identifies approved user when backend sends registrationStatus: "Approved"', () {
-      final json = {
-        'id': 'usr_01',
-        'email': 'student@fpt.edu.vn',
-        'fullName': 'Nguyễn Văn A',
-        'studentCode': 'SE170001',
-        'registrationStatus': 'Approved',
-        'isAdmin': false,
-        'isStudent': true,
-      };
+    test(
+      'Correctly identifies approved user when backend sends registrationStatus: "Approved"',
+      () {
+        final json = {
+          'id': 'usr_01',
+          'email': 'student@fpt.edu.vn',
+          'fullName': 'Nguyễn Văn A',
+          'studentCode': 'SE170001',
+          'registrationStatus': 'Approved',
+          'isAdmin': false,
+          'isStudent': true,
+        };
 
-      final profile = UserProfileModel.fromJson(json);
+        final profile = UserProfileModel.fromJson(json);
 
-      expect(profile.isApproved, isTrue);
-      expect(profile.isPending, isFalse);
-      expect(profile.isRejected, isFalse);
-      expect(profile.registrationStatus, 'Approved');
-      expect(profile.isFpt, isTrue);
-    });
+        expect(profile.isApproved, isTrue);
+        expect(profile.isPending, isFalse);
+        expect(profile.isRejected, isFalse);
+        expect(profile.registrationStatus, 'Approved');
+        expect(profile.isFpt, isTrue);
+      },
+    );
 
-    test('Correctly identifies pending user when backend sends registrationStatus: "Pending"', () {
-      final json = {
-        'id': 'usr_02',
-        'email': 'guest@hcmut.edu.vn',
-        'fullName': 'Trần Văn B',
-        'registrationStatus': 'Pending',
-        'isApproved': false,
-      };
+    test(
+      'Correctly identifies pending user when backend sends registrationStatus: "Pending"',
+      () {
+        final json = {
+          'id': 'usr_02',
+          'email': 'guest@hcmut.edu.vn',
+          'fullName': 'Trần Văn B',
+          'registrationStatus': 'Pending',
+          'isApproved': false,
+        };
 
-      final profile = UserProfileModel.fromJson(json);
+        final profile = UserProfileModel.fromJson(json);
 
-      expect(profile.isApproved, isFalse);
-      expect(profile.isPending, isTrue);
-      expect(profile.isRejected, isFalse);
-      expect(profile.registrationStatus, 'Pending');
-    });
+        expect(profile.isApproved, isFalse);
+        expect(profile.isPending, isTrue);
+        expect(profile.isRejected, isFalse);
+        expect(profile.registrationStatus, 'Pending');
+      },
+    );
 
-    test('Correctly identifies rejected user when backend sends registrationStatus: "Rejected"', () {
-      final json = {
-        'id': 'usr_03',
-        'email': 'guest@uit.edu.vn',
-        'fullName': 'Lê Văn C',
-        'registrationStatus': 'Rejected',
-      };
+    test(
+      'Correctly identifies rejected user when backend sends registrationStatus: "Rejected"',
+      () {
+        final json = {
+          'id': 'usr_03',
+          'email': 'guest@uit.edu.vn',
+          'fullName': 'Lê Văn C',
+          'registrationStatus': 'Rejected',
+        };
 
-      final profile = UserProfileModel.fromJson(json);
+        final profile = UserProfileModel.fromJson(json);
 
-      expect(profile.isApproved, isFalse);
-      expect(profile.isPending, isFalse);
-      expect(profile.isRejected, isTrue);
-      expect(profile.registrationStatus, 'Rejected');
-    });
+        expect(profile.isApproved, isFalse);
+        expect(profile.isPending, isFalse);
+        expect(profile.isRejected, isTrue);
+        expect(profile.registrationStatus, 'Rejected');
+      },
+    );
 
     test('Handles boolean isApproved: true / isApproved: "true"', () {
       final jsonBool = {

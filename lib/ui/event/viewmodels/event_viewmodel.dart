@@ -33,17 +33,31 @@ class EventViewModel extends BaseViewModel {
     if (_searchQuery.trim().isNotEmpty) {
       final q = _searchQuery.trim().toLowerCase();
       list = list
-          .where((e) =>
-              e.title.toLowerCase().contains(q) ||
-              e.description.toLowerCase().contains(q) ||
-              (e.location != null && e.location!.toLowerCase().contains(q)))
+          .where(
+            (e) =>
+                e.title.toLowerCase().contains(q) ||
+                e.description.toLowerCase().contains(q) ||
+                (e.location != null && e.location!.toLowerCase().contains(q)),
+          )
           .toList();
     }
+    // Sort: open events first, then closed events
+    list.sort((a, b) => (a.isOpen ? 1 : 0).compareTo(b.isOpen ? 1 : 0));
     return list;
   }
 
-  List<EventModel> get upcomingEvents => _upcomingEvents;
-  List<EventModel> get myEvents => _myEvents;
+  List<EventModel> get upcomingEvents {
+    var list = _upcomingEvents.toList();
+    list.sort((a, b) => (a.isOpen ? 1 : 0).compareTo(b.isOpen ? 1 : 0));
+    return list;
+  }
+
+  List<EventModel> get myEvents {
+    var list = _myEvents.toList();
+    list.sort((a, b) => (a.isOpen ? 1 : 0).compareTo(b.isOpen ? 1 : 0));
+    return list;
+  }
+
   EventModel? get selectedEvent => _selectedEvent;
   List<RoundModel> get selectedEventRounds => _selectedEventRounds;
   List<TrackModel> get selectedEventTracks => _selectedEventTracks;
