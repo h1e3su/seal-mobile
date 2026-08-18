@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../data/models/event/event_model.dart';
 import '../../ui/auth/views/splash_view.dart';
 import '../../ui/auth/views/login_view.dart';
 import '../../ui/auth/views/register_view.dart';
@@ -10,6 +11,7 @@ import '../../ui/profile/views/profile_verification_view.dart';
 import '../../ui/profile/views/profile_locked_view.dart';
 import '../../ui/event/views/event_list_view.dart';
 import '../../ui/event/views/event_detail_view.dart';
+import '../../ui/team/views/create_team_view.dart';
 import '../../ui/team/views/my_team_view.dart';
 import '../../ui/team/views/team_roster_view.dart';
 import '../../ui/submission/views/submission_list_view.dart';
@@ -64,9 +66,14 @@ class AppRouter {
       case RouteNames.eventList:
         return MaterialPageRoute(builder: (_) => const EventListView());
       case RouteNames.eventDetail:
-        return MaterialPageRoute(builder: (_) => const EventDetailView());
-      case RouteNames.myTeam:
+        return MaterialPageRoute(
+          builder: (_) => EventDetailView(
+            event: args is EventModel ? args : null,
+          ),
+        );
       case RouteNames.createTeam:
+        return MaterialPageRoute(builder: (_) => const CreateTeamView());
+      case RouteNames.myTeam:
         return MaterialPageRoute(builder: (_) => const MyTeamView());
       case RouteNames.teamRoster:
         return MaterialPageRoute(builder: (_) => const TeamRosterView());

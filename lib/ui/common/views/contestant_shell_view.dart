@@ -34,50 +34,52 @@ class _ContestantShellViewState extends State<ContestantShellView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bgBase,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: AppColors.bgPanel,
-        elevation: 0,
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(color: AppColors.primary, width: 1),
+      appBar: _currentIndex == 0
+          ? AppBar(
+              automaticallyImplyLeading: false,
+              backgroundColor: AppColors.bgPanel,
+              elevation: 0,
+              title: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: AppColors.primary, width: 1),
+                    ),
+                    child: const Icon(Icons.shield, size: 16, color: AppColors.primary),
+                  ),
+                  const SizedBox(width: 10),
+                  const Text(
+                    'SEAL :: CONTESTANT',
+                    style: TextStyle(
+                      fontFamily: 'Chakra Petch',
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.0,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ],
               ),
-              child: const Icon(Icons.shield, size: 16, color: AppColors.primary),
-            ),
-            const SizedBox(width: 10),
-            const Text(
-              'SEAL :: CONTESTANT',
-              style: TextStyle(
-                fontFamily: 'Chakra Petch',
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.0,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined, color: AppColors.primary),
-            onPressed: () => Navigator.of(context).pushNamed(RouteNames.notifications),
-          ),
-          IconButton(
-            icon: const CircleAvatar(
-              radius: 13,
-              backgroundColor: AppColors.bgInput,
-              child: Icon(Icons.person, size: 16, color: AppColors.accentTeam),
-            ),
-            onPressed: () => Navigator.of(context).pushNamed(RouteNames.profile),
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.notifications_outlined, color: AppColors.primary),
+                  onPressed: () => Navigator.of(context).pushNamed(RouteNames.notifications),
+                ),
+                IconButton(
+                  icon: const CircleAvatar(
+                    radius: 13,
+                    backgroundColor: AppColors.bgInput,
+                    child: Icon(Icons.person, size: 16, color: AppColors.accentTeam),
+                  ),
+                  onPressed: () => Navigator.of(context).pushNamed(RouteNames.profile),
+                ),
+                const SizedBox(width: 8),
+              ],
+            )
+          : null,
       body: IndexedStack(
         index: _currentIndex,
         children: _pages,

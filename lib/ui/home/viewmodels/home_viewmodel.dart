@@ -22,19 +22,41 @@ class HomeViewModel extends BaseViewModel {
 
   UserRoleContext get roleContext => _roleContext;
 
-  List<EventModel> get allEvents => _events;
+  List<EventModel> _sortEvents(List<EventModel> inputList) {
+    final sorted = List<EventModel>.from(inputList);
+    sorted.sort((a, b) {
+      // 1. Ưu tiên sự kiện ĐANG MỞ lên trước
+      if (a.isOpen && !b.isOpen) return -1;
+      if (!a.isOpen && b.isOpen) return 1;
+
+      // 2. Cùng trạng thái: sắp xếp theo thời gian mới hơn lên trước
+      if (a.isOpen) {
+        final aStart = a.startDate ?? a.registrationStartDate ?? DateTime(1970);
+        final bStart = b.startDate ?? b.registrationStartDate ?? DateTime(1970);
+        return bStart.compareTo(aStart);
+      } else {
+        final aEnd = a.endDate ?? a.startDate ?? DateTime(1970);
+        final bEnd = b.endDate ?? b.startDate ?? DateTime(1970);
+        return bEnd.compareTo(aEnd);
+      }
+    });
+    return sorted;
+  }
+
+  List<EventModel> get allEvents => _sortEvents(_events);
 
   List<EventModel> get events {
-    if (_searchQuery.trim().isEmpty) {
-      return _events;
+    var list = _events;
+    if (_searchQuery.trim().isNotEmpty) {
+      final q = _searchQuery.trim().toLowerCase();
+      list = list
+          .where((e) =>
+              e.title.toLowerCase().contains(q) ||
+              e.description.toLowerCase().contains(q) ||
+              (e.location != null && e.location!.toLowerCase().contains(q)))
+          .toList();
     }
-    final q = _searchQuery.trim().toLowerCase();
-    return _events
-        .where((e) =>
-            e.title.toLowerCase().contains(q) ||
-            e.description.toLowerCase().contains(q) ||
-            (e.location != null && e.location!.toLowerCase().contains(q)))
-        .toList();
+    return _sortEvents(list);
   }
 
   String get searchQuery => _searchQuery;

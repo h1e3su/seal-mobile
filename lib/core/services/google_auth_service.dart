@@ -7,7 +7,8 @@ class GoogleAuthService {
       '805216331270-kmjdrat53j8oa0c7sg6cqbag12a8q9iv.apps.googleusercontent.com';
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-    serverClientId: _webClientId, // <- CHÌA KHÓA TRÁNH LỖI AUDIENCE (aud)
+    clientId: kIsWeb ? _webClientId : null,
+    serverClientId: kIsWeb ? null : _webClientId, // <- CHÌA KHÓA TRÁNH LỖI AUDIENCE (aud) trên mobile
     scopes: ['email', 'profile'],
   );
 

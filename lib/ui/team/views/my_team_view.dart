@@ -5,8 +5,6 @@ import '../../../app/theme/app_colors.dart';
 import '../../common/widgets/app_button.dart';
 import '../../common/widgets/hud_card.dart';
 import '../../common/widgets/status_chip.dart';
-import '../../../core/utils/student_verification_guard.dart';
-import '../../profile/viewmodels/profile_viewmodel.dart';
 import '../viewmodels/team_viewmodel.dart';
 
 class MyTeamView extends StatefulWidget {
@@ -131,7 +129,7 @@ class _MyTeamViewState extends State<MyTeamView> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               if (userState == TeamUserState.unassigned) ...[
-                                const SizedBox(height: 30),
+                                const SizedBox(height: 48),
                                 const Icon(Icons.groups_outlined, size: 72, color: AppColors.primary),
                                 const SizedBox(height: 16),
                                 const Text(
@@ -144,35 +142,6 @@ class _MyTeamViewState extends State<MyTeamView> {
                                   'Hãy tạo đội mới với vai trò Trưởng nhóm hoặc tham gia đội thi bằng mã mời từ bạn bè.',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(fontFamily: 'Sora', fontSize: 13, color: AppColors.textMuted),
-                                ),
-                                const SizedBox(height: 32),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: AppButton(
-                                        label: '[ TẠO ĐỘI ]',
-                                        onPressed: () async {
-                                          final profileVm = context.read<ProfileViewModel>();
-                                          final canProceed = await StudentVerificationGuard.ensureVerified(
-                                            context,
-                                            profileVm,
-                                            actionName: 'tạo đội thi',
-                                          );
-                                          if (canProceed && context.mounted) {
-                                            Navigator.of(context).pushNamed(RouteNames.createTeam);
-                                          }
-                                        },
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: AppButton(
-                                        label: '[ LỜI MỜI ]',
-                                        variant: AppButtonVariant.secondary,
-                                        onPressed: () => Navigator.of(context).pushNamed(RouteNames.notifications),
-                                      ),
-                                    ),
-                                  ],
                                 ),
                               ] else if (team != null) ...[
                                 // Warning Banner for LastRejectReason

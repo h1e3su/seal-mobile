@@ -21,6 +21,27 @@ class EventViewModel extends BaseViewModel {
 
   EventViewModel(this._eventRepository);
 
+  List<EventModel> _sortEvents(List<EventModel> inputList) {
+    final sorted = List<EventModel>.from(inputList);
+    sorted.sort((a, b) {
+      // 1. Ưu tiên sự kiện ĐANG MỞ lên trước
+      if (a.isOpen && !b.isOpen) return -1;
+      if (!a.isOpen && b.isOpen) return 1;
+
+      // 2. Sắp xếp theo thời gian mới hơn lên trước
+      if (a.isOpen) {
+        final aStart = a.startDate ?? a.registrationStartDate ?? DateTime(1970);
+        final bStart = b.startDate ?? b.registrationStartDate ?? DateTime(1970);
+        return bStart.compareTo(aStart);
+      } else {
+        final aEnd = a.endDate ?? a.startDate ?? DateTime(1970);
+        final bEnd = b.endDate ?? b.startDate ?? DateTime(1970);
+        return bEnd.compareTo(aEnd);
+      }
+    });
+    return sorted;
+  }
+
   List<EventModel> get events {
     var list = _events;
     if (_selectedStatusFilter != 'ALL') {
@@ -39,7 +60,7 @@ class EventViewModel extends BaseViewModel {
               (e.location != null && e.location!.toLowerCase().contains(q)))
           .toList();
     }
-    return list;
+    return _sortEvents(list);
   }
 
   List<EventModel> get upcomingEvents => _upcomingEvents;

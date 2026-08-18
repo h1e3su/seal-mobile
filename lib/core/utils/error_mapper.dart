@@ -64,6 +64,7 @@ class ErrorMapper {
           return 'Yêu cầu không hợp lệ hoặc thông tin chưa đầy đủ.';
       }
     }
-    return 'Đã có lỗi xảy ra. Vui lòng thử lại.';
+    final msg = exception.toString().replaceFirst('Exception: ', '').trim();
+    return msg.isNotEmpty ? msg : 'Đã có lỗi xảy ra. Vui lòng thử lại.';
   }
 }
