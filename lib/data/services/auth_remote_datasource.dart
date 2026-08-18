@@ -17,8 +17,8 @@ class AuthRemoteDataSource {
       data: request.toJson(),
     );
     final apiResponse = ApiResponse.fromJson(
-      response.data,
-      (json) => AuthResponse.fromJson(json as Map<String, dynamic>),
+      response.data is Map<String, dynamic> ? response.data as Map<String, dynamic> : <String, dynamic>{},
+      (json) => AuthResponse.fromJson(json is Map<String, dynamic> ? json : <String, dynamic>{}),
     );
     return apiResponse.data;
   }
@@ -29,8 +29,8 @@ class AuthRemoteDataSource {
       data: {'idToken': idToken},
     );
     final apiResponse = ApiResponse.fromJson(
-      response.data,
-      (json) => AuthResponse.fromJson(json as Map<String, dynamic>),
+      response.data is Map<String, dynamic> ? response.data as Map<String, dynamic> : <String, dynamic>{},
+      (json) => AuthResponse.fromJson(json is Map<String, dynamic> ? json : <String, dynamic>{}),
     );
     return apiResponse.data;
   }
@@ -41,8 +41,8 @@ class AuthRemoteDataSource {
       data: request.toJson(),
     );
     final apiResponse = ApiResponse.fromJson(
-      response.data,
-      (json) => UserProfileModel.fromJson(json as Map<String, dynamic>),
+      response.data is Map<String, dynamic> ? response.data as Map<String, dynamic> : <String, dynamic>{},
+      (json) => UserProfileModel.fromJson(json is Map<String, dynamic> ? json : <String, dynamic>{}),
     );
     return apiResponse.data;
   }

@@ -37,14 +37,15 @@ class TeamRemoteDataSource {
   }
 
   Future<TeamModel?> getMyTeam({String? eventId}) async {
-    if (eventId == null || eventId.isEmpty) {
-      return null;
-    }
-
     try {
+      final queryParams = <String, dynamic>{};
+      if (eventId != null && eventId.isNotEmpty) {
+        queryParams['eventId'] = eventId;
+      }
+
       final response = await _dioClient.dio.get(
         ApiEndpoints.myTeam,
-        queryParameters: {'eventId': eventId},
+        queryParameters: queryParams.isNotEmpty ? queryParams : null,
       );
 
       final map = ResponseParser.extractMap(response.data);

@@ -1,13 +1,13 @@
 class ApiResponse<T> {
   final T data;
   final String? message;
-  final int statusCode;
+  final dynamic statusCode;
   final bool success;
 
   ApiResponse({
     required this.data,
     this.message,
-    required this.statusCode,
+    this.statusCode = 200,
     required this.success,
   });
 
@@ -15,11 +15,15 @@ class ApiResponse<T> {
     Map<String, dynamic> json,
     T Function(dynamic) fromJsonT,
   ) {
+    final rawData = json['data'] ?? json;
     return ApiResponse(
-      data: fromJsonT(json['data']),
-      message: json['message'],
+      data: fromJsonT(rawData),
+      message: json['message']?.toString(),
       statusCode: json['statusCode'] ?? 200,
-      success: json['success'] ?? true,
+      success: json['success'] == true ||
+          json['success'] == 'true' ||
+          json['statusCode'] == 'OK' ||
+          json['statusCode'] == 200,
     );
   }
 }

@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:seal/core/context/user_role_context.dart';
-import 'package:seal/core/network/api_result.dart';
 import 'package:seal/core/network/dio_client.dart';
 import 'package:seal/core/network/paginated_data.dart';
 import 'package:seal/data/models/event/event_model.dart';

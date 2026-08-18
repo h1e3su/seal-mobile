@@ -5,8 +5,6 @@ import '../../../app/theme/app_colors.dart';
 import '../../common/widgets/app_button.dart';
 import '../../common/widgets/hud_card.dart';
 import '../../common/widgets/status_chip.dart';
-import '../../../core/utils/student_verification_guard.dart';
-import '../../profile/viewmodels/profile_viewmodel.dart';
 import '../viewmodels/team_viewmodel.dart';
 
 class MyTeamView extends StatefulWidget {
